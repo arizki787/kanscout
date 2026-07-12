@@ -41,12 +41,13 @@ export default function Navbar() {
                                         </AvatarFallback>
                                     </Avatar>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent>
+
+                                <DropdownMenuContent className='w-56' align="end">
                                     <DropdownMenuGroup>
-                                        <DropdownMenuLabel>
-                                            <div>
-                                                <p>{session.user.name}</p>
-                                                <p>{session.user.email}</p>
+                                        <DropdownMenuLabel className='font-normal'>
+                                            <div className="flex flex-col space-y-1">
+                                                <p className="text-sm font-medium leading-none">{session.user.name}</p>
+                                                <p className='text-xs leading-none text-muted-foreground'>{session.user.email}</p>
                                             </div>
                                         </DropdownMenuLabel>
                                         <SignOutButton/>
