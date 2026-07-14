@@ -29,7 +29,7 @@ async function getBoard(userId: string) {
 
 export default async function Dashboard() {
   const session = await getSession();
-  console.log(session)
+  // console.log(session)
   if (!session?.user) {
     redirect("/sign-in");
   }
