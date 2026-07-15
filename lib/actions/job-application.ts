@@ -4,6 +4,7 @@ import { connect } from "http2";
 import { getSession } from "../auth/auth";
 import connectDB from "../db";
 import { Board, Column, JobApplication } from "../models";
+import { revalidatePath } from "next/cache";
 
 interface JobApplicationData {
   company: string;
@@ -40,7 +41,7 @@ export async function createJobApplication(data: JobApplicationData) {
     description,
   } = data;
 
-  console.log(data);
+  // console.log(data);
 
   if (!company || !position || !columnId || !boardId) {
     return { error: "Missing required fields" };
@@ -89,5 +90,7 @@ export async function createJobApplication(data: JobApplicationData) {
     $push: {jobApplications: jobApplication._id},
   });
 
+  revalidatePath('/dashboard');
+  
   return { data: JSON.parse(JSON.stringify(jobApplication))  }
 }
