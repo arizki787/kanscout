@@ -192,7 +192,7 @@ export async function updateJobApplication(
   } else if (order !== undefined && order !== null) {
     const otherJobsInColumn = await JobApplication.find({
       columnId: currentColumnId,
-      $_id: { $ne: id },
+      _id: { $ne: id },
     })
       .sort({ order: 1 })
       .lean();
