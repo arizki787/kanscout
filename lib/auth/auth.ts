@@ -5,7 +5,22 @@ import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { initializeUserBoard } from '../init-user-board';
 
-const client = new MongoClient(process.env.MONGODB_URI!);
+const mongoUri = process.env.MONGODB_URI;
+
+if (!mongoUri) {
+    throw new Error('MONGODB_URI is not set');
+}
+
+const globalForMongo = globalThis as typeof globalThis & {
+    __mongoClientPromise?: Promise<MongoClient>;
+};
+
+if (!globalForMongo.__mongoClientPromise) {
+    const mongoClient = new MongoClient(mongoUri);
+    globalForMongo.__mongoClientPromise = mongoClient.connect();
+}
+
+const client = await globalForMongo.__mongoClientPromise;
 const db = client.db();
 
 export const auth = betterAuth({
