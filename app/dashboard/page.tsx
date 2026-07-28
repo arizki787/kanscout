@@ -1,6 +1,5 @@
 import { getSession } from "@/lib/auth/auth";
 import connectDB from "@/lib/db";
-import { redirect } from "next/navigation";
 import { Board } from "@/lib/models";
 import KanbanBoard from "@/components/kanban-board";
 import { Suspense } from "react";
@@ -31,11 +30,7 @@ async function getBoard(userId: string) {
 
 async function DashboardPage() {
   const session = await getSession();
-  // console.log(session)
-  if (!session?.user) {
-    redirect("/sign-in");
-  }
-  const board = await getBoard(session?.user.id ?? "");
+  const board = await getBoard(session?.user?.id ?? "");
 
   return (
     <div className="min-h-screen bg-white">
@@ -44,7 +39,7 @@ async function DashboardPage() {
           <h1 className="text-2xl font-bold text-black">{board.name}</h1>
           <p className="text-muted-foreground">Track your job applications</p>
         </div>
-        <KanbanBoard board={board} userId={session.user.id} />
+        <KanbanBoard board={board} userId={session?.user?.id ?? ""} />
       </div>
     </div>
   );

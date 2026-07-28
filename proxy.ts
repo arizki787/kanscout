@@ -1,21 +1,36 @@
-// this file similar to middleware
-
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "./lib/auth/auth";
+import { auth } from "./lib/auth/auth";
 
-// create function proxy with parameter request: NextRequest with return NextResponse.redirect()   
+const protectedRoutes = ["/dashboard"];
+const authRoutes = ["/sign-in", "/sign-up"];
 
-export default async function proxy(request: NextRequest) {
-    
-    const session = await getSession();
-    
-    const isSignInPage = request.nextUrl.pathname.startsWith('/sign-in');
-    const isSignUpPage = request.nextUrl.pathname.startsWith('/sign-up');
+export async function proxy(request: NextRequest) {
+    const session = await auth.api.getSession({
+        headers: request.headers,
+    });
 
-    if ((isSignInPage || isSignUpPage) && session?.user){
-        return NextResponse.redirect(new URL('/dashboard', request.url));
+    const { pathname } = request.nextUrl;
+
+    const isProtectedRoute = protectedRoutes.some((route) =>
+        pathname.startsWith(route)
+    );
+    const isAuthRoute = authRoutes.some((route) =>
+        pathname.startsWith(route)
+    );
+
+    // Redirect unauthenticated users away from protected routes
+    if (isProtectedRoute && !session?.user) {
+        return NextResponse.redirect(new URL("/sign-in", request.url));
     }
 
+    // Redirect authenticated users away from auth routes
+    if (isAuthRoute && session?.user) {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
 
     return NextResponse.next();
 }
+
+export const config = {
+    matcher: ["/dashboard/:path*", "/sign-in", "/sign-up"],
+};

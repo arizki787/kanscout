@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useState } from "react";
-import { signUp } from '@/lib/auth/auth-client';
+import { signIn, signUp } from '@/lib/auth/auth-client';
 import { useRouter } from "next/navigation";
+import { FaGoogle } from "react-icons/fa";
 
 export default function SignUp() {
     const [name, setName] = useState("");
@@ -38,6 +39,24 @@ export default function SignUp() {
             }
         } catch (err) {
             setError('An unexpected error occurred!');
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    async function handleSubmitGoogle(){
+        setError("");
+        setLoading(true);
+        try {
+            const result = await signIn.social({
+                provider: 'google',
+                callbackURL: '/dashboard'
+            });
+            if (result.error){
+                setError(result.error.message ?? 'Failed to Sign In')
+            }
+        } catch (err) {
+            setError('OAuth error occured!');
         } finally {
             setLoading(false);
         }
@@ -106,11 +125,20 @@ export default function SignUp() {
                         >
                             {loading ? "Creating account..." : "Sign Up"}
                         </Button>
+                        <Button 
+                            type="button"
+                            onClick={() => handleSubmitGoogle()}
+                            className='w-full bg-white text-primary border-primary hover:bg-primary/90 hover:text-white'
+                            disabled={loading}
+                        >
+                            <FaGoogle className="w-4 h-4"/>
+                            {loading ? "Signing Up ..." : "Sign Up With Google"}
+                        </Button>
                         <p>
                             Already have an account? {" "} 
                             <Link 
                                 href='/sign-in'
-                                className="font-medium text-primary hover: underline"
+                                className="font-medium text-primary hover:underline"
                             >
                                 Sign In
                             </Link>

@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signIn } from "@/lib/auth/auth-client";
 import Link from "next/link";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { FaGoogle } from "react-icons/fa";
 
 export default function SignIn() {
     const [email, setEmail] = useState("");
@@ -20,6 +21,7 @@ export default function SignIn() {
 
     async function handleSubmit(e:React.FormEvent) {
         e.preventDefault();
+        setError("");
         setLoading(true);
 
         try{
@@ -38,8 +40,25 @@ export default function SignIn() {
         } finally {
             setLoading(false);
         }
-
     };
+
+    async function handleSubmitGoogle(){
+        setError("");
+        setLoading(true);
+        try {
+            const result = await signIn.social({
+                provider: 'google',
+                callbackURL: '/dashboard'
+            });
+            if (result.error){
+                setError(result.error.message ?? 'Failed to Sign In')
+            }
+        } catch (err) {
+            setError('OAuth error occured!');
+        } finally {
+            setLoading(false);
+        }
+    }
 
     return (
         <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-white p-4">
@@ -90,11 +109,20 @@ export default function SignIn() {
                         >
                             {loading ? "Signing In ..." : "Sign In"}
                         </Button>
+                        <Button 
+                            type="button"
+                            onClick={() => handleSubmitGoogle()}
+                            className='w-full bg-white text-primary border-primary hover:bg-primary/90 hover:text-white'
+                            disabled={loading}
+                        >
+                            <FaGoogle className="w-4 h-4"/>
+                            {loading ? "Signing In ..." : "Sign In With Google"}
+                        </Button>
                         <p>
                             Don't have an account? {" "} 
                             <Link 
                                 href='/sign-up'
-                                className="font-medium text-primary hover: underline"
+                                className="font-medium text-primary hover:underline"
                             >
                                 Sign Up
                             </Link>

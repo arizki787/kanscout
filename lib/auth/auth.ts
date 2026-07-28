@@ -6,9 +6,15 @@ import { headers } from 'next/headers';
 import { initializeUserBoard } from '../init-user-board';
 
 const mongoUri = process.env.MONGODB_URI;
+const googleClientId = process.env.GOOGLE_CLIENT_ID;
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
 if (!mongoUri) {
     throw new Error('MONGODB_URI is not set');
+}
+
+if (!googleClientId || !googleClientSecret) {
+    throw new Error('Google OAuth credentials (GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET) are not set');
 }
 
 const globalForMongo = globalThis as typeof globalThis & {
@@ -27,6 +33,7 @@ export const auth = betterAuth({
     database: mongodbAdapter(db, {
         client,
     }),
+    baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL!,
     session: {
         cookieCache: {
             enabled: true,
@@ -35,6 +42,10 @@ export const auth = betterAuth({
     },
     emailAndPassword: {
         enabled: true,
+    },
+    accountLinking: {
+        enabled: true,
+        trustedProviders: ['google'],
     },
     databaseHooks: {
         user: {
@@ -46,6 +57,12 @@ export const auth = betterAuth({
                 }
             }
         }
+    },
+    socialProviders: {
+        google: {
+            clientId: googleClientId,
+            clientSecret: googleClientSecret,
+        },
     }
 });
 
