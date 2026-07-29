@@ -11,10 +11,10 @@ export default function Home() {
         <section className="container mx-auto px-4 py-32">
           <div className="mx-auto max-w-4xl text-center">
             <h1 className="text-black mb-6 text-5xl font-bold">
-              A better way to track your job application.
+              Scout jobs and track applications with <span className="text-primary">Kanscout</span>
             </h1>
-            <p className="text-muted-foreground mb-10 text-xl">
-              Capture, organize, and manage your job search in one place.
+            <p className="text-muted-foreground mb-10 text-xl max-w-2xl mx-auto">
+              An intuitive visual Kanban board designed for looking for jobs, organizing your job search, and tracking every application from discovery to offer.
             </p>
             <div className="flex flex-col items-center gap-4">
               <Link href="/sign-up">
@@ -37,11 +37,10 @@ export default function Home() {
                   <Briefcase className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="mb-3 text-2xl font-semibold text-black">
-                  Organize Applications
+                  Scout Opportunities
                 </h3>
                 <p className="text-muted-foreground">
-                  Create custom boards and columns to track your job
-                  applications at every stage of the process.
+                  Organize your job search seamlessly. Store target roles and customize Kanban columns for every stage of looking for a job.
                 </p>
               </div>
               <div className="flex flex-col">
@@ -49,11 +48,10 @@ export default function Home() {
                   <TrendingUp className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="mb-3 text-2xl font-semibold text-black">
-                  Track Progress
+                  Kanban Application Tracker
                 </h3>
                 <p className="text-muted-foreground">
-                  Monitor your application status from applied to interview to
-                  offer with visual Kanban boards.
+                  Track job application progress from wishlist to interview to final offer with drag-and-drop visual Kanban boards.
                 </p>
               </div>
               <div className="flex flex-col">
@@ -61,11 +59,10 @@ export default function Home() {
                   <CheckCircle2 className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="mb-3 text-2xl font-semibold text-black">
-                  Stay Organized
+                  All-in-One Dashboard
                 </h3>
                 <p className="text-muted-foreground">
-                  Never lose track of an application. Keep all your job search
-                  information in one centralized place.
+                  Never lose track of a job application. Keep all notes, interview schedules, and application statuses in one central place with Kanscout.
                 </p>
               </div>
             </div>

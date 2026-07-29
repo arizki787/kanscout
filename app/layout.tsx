@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Kanscout - Kanban Job Tracker",
-  description: "Job tracking stylized with kanban board",
+  title: "Kanscout - Visual Kanban Board for Job Search & Application Tracking",
+  description: "Kanscout is an intuitive Kanban board for looking for jobs and tracking your job applications from start to offer.",
 };
 
 export default function RootLayout({
