@@ -22,13 +22,13 @@ interface JobApplicationData {
 }
 
 export async function createJobApplication(data: JobApplicationData) {
+  await connectDB();
+
   const session = await getSession();
 
   if (!session?.user) {
     return { error: "Unauthorized" };
   }
-
-  await connectDB();
 
   const {
     company,
@@ -112,6 +112,8 @@ export async function updateJobApplication(
     description?: string;
   },
 ) {
+  await connectDB();
+
   const session = await getSession();
 
   if (!session?.user) {
@@ -239,6 +241,8 @@ export async function updateJobApplication(
 }
 
 export async function deleteJobApplication(id: string) {
+  await connectDB();
+
   const session = await getSession();
 
   if (!session?.user) {

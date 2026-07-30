@@ -30,7 +30,7 @@ async function getBoard(userId: string) {
   return board;
 }
 
-async function getStatistics(board: BoardType) {
+function getStatistics(board: BoardType) {
   const jobCount = {
     wishlist: 0,
     applied: 0,
@@ -62,7 +62,7 @@ async function getStatistics(board: BoardType) {
 async function DashboardPage() {
   const session = await getSession();
   const board = await getBoard(session?.user?.id ?? "");
-  const jobData = await getStatistics(board);
+  const jobData = getStatistics(board);
   const totalApplied = Object.values(jobData).reduce((sum, value) => sum + value, 0);
   const rejectionRate = totalApplied > 0 ? (jobData.rejected / totalApplied * 100).toFixed(0) : "0";
 
