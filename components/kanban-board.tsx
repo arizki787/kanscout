@@ -8,6 +8,7 @@ import {
   Mic,
   MoreHorizontal,
   MoreVertical,
+  Plus,
   Pointer,
   Trash2,
   XCircle,
@@ -21,6 +22,7 @@ import {
 } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
 import CreateJobApplicantDialog from "./create-job-dialog";
+import { CreateJobApplicatDialogNoButton } from "./create-job-dialog";
 import column from "@/lib/models/column";
 import jobApplication from "@/lib/models/job-application";
 import JobApplicationCard from "./job-application-card";
@@ -109,6 +111,7 @@ function DropableColumn({
             </CardTitle>
           </div>
           <div className="ml-auto">
+            <CreateJobApplicatDialogNoButton columnId={column._id} boardId={boardId} />
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
