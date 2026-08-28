@@ -96,7 +96,7 @@ export default function JobApplicationCard({
     }
   }
   return (
-    <>
+    <>  
       <Card
         className="cursor-pointer transition-shadow hover:shadow-lg bg-white group shadow-sm"
         {...(isMounted ? dragHandleProps : {})}
@@ -104,12 +104,12 @@ export default function JobApplicationCard({
         <CardContent className="p-4">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-sm mb-1">{job.position}</h3>
+              <h3 className="font-semibold text-sm mb-1 truncate">{job.position}</h3>
               <p className="text-xs text-muted-foreground mb-2">
                 {job.company}
               </p>
               {job.description && (
-                <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+                <p className="text-xs text-muted-foreground mb-2 line-clamp-2 wrap-break-word">
                   {job.description}
                 </p>
               )}

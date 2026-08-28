@@ -6,10 +6,7 @@ import {
   Calendar,
   CheckCircle2,
   Mic,
-  MoreHorizontal,
   MoreVertical,
-  Plus,
-  Pointer,
   Trash2,
   XCircle,
 } from "lucide-react";
@@ -23,8 +20,6 @@ import {
 import { Button } from "./ui/button";
 import CreateJobApplicantDialog from "./create-job-dialog";
 import { CreateJobApplicatDialogNoButton } from "./create-job-dialog";
-import column from "@/lib/models/column";
-import jobApplication from "@/lib/models/job-application";
 import JobApplicationCard from "./job-application-card";
 import { useBoard } from "@/lib/hooks/useBoard";
 import {
@@ -101,7 +96,7 @@ function DropableColumn({
     column.jobApplications?.sort((a, b) => a.order - b.order) || [];
 
   return (
-    <Card className="min-w-75 shrink-0 shadow-md p-0 mt-1">
+    <Card className="w-80 shrink-0 shadow-md p-0 mt-1">
       <CardHeader className={`${config.color} text-white pb-3 pt-3`}>
         <div className="flex w-full items-center gap-2">
           <div className="flex items-center gap-2">
