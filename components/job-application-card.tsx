@@ -1,7 +1,8 @@
 "use client";
+
 import { Column, JobApplication } from "@/lib/models/models.types";
 import { Card, CardContent } from "./ui/card";
-import { Edit2, ExternalLink, MoreVertical, Plus, Trash2 } from "lucide-react";
+import { Calendar, Edit2, ExternalLink, MoreVertical, Plus, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,7 +24,6 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { useEffect, useState } from "react";
-import jobApplication from "@/lib/models/job-application";
 
 interface JobApplicationCardProps {
   job: JobApplication;
@@ -48,6 +48,12 @@ export default function JobApplicationCard({
     tags: job.tags?.join(", ") || "",
     description: job.description || "",
   });
+
+  const currentColumn = columns.find((c) => c._id === job.columnId);
+  const isAppliedColumn = currentColumn?.name?.toLowerCase() === "applied";
+  const displayAppliedDate =
+    job.appliedDate ||
+    (isAppliedColumn ? job.createdAt || new Date() : null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -98,10 +104,10 @@ export default function JobApplicationCard({
   return (
     <>  
       <Card
-        className="cursor-pointer transition-shadow hover:shadow-lg bg-white group shadow-sm"
+        className="cursor-pointer transition-shadow hover:shadow-lg bg-white group shadow-sm "
         {...(isMounted ? dragHandleProps : {})}
       >
-        <CardContent className="p-4">
+        <CardContent className="px-4">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-sm mb-1 truncate">{job.position}</h3>
@@ -123,6 +129,19 @@ export default function JobApplicationCard({
                       {tag}
                     </span>
                   ))}
+                </div>
+              )}
+
+              {displayAppliedDate && (
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2 mb-1">
+                  <span>
+                    Applied on{" "}
+                    {new Date(displayAppliedDate).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </span>
                 </div>
               )}
 
