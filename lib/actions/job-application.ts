@@ -43,8 +43,6 @@ export async function createJobApplication(data: JobApplicationData) {
     description,
   } = data;
 
-  // console.log(data);
-
   if (!company || !position || !columnId || !boardId) {
     return { error: "Missing required fields" };
   }
@@ -72,6 +70,9 @@ export async function createJobApplication(data: JobApplicationData) {
     .select("order")
     .lean()) as { order: number } | null;
 
+  const status = column.name.toLowerCase().replace(/\s+/g, "-");
+  const isApplied = column.name.toLowerCase() === "applied";
+
   const jobApplication = await JobApplication.create({
     company,
     position,
@@ -84,8 +85,9 @@ export async function createJobApplication(data: JobApplicationData) {
     userId: session.user.id,
     tags: tags || [],
     description,
-    status: "applied",
-    order: maxOrder ? maxOrder.order + 1 : 0,
+    status,
+    appliedDate: isApplied ? new Date() : undefined,
+    order: maxOrder ? maxOrder.order + 100 : 0,
   });
 
   await Column.findByIdAndUpdate(columnId, {
@@ -110,6 +112,8 @@ export async function updateJobApplication(
     order?: number;
     tags?: string[];
     description?: string;
+    status?: string;
+    appliedDate?: Date | string | null;
   },
 ) {
   await connectDB();
@@ -143,7 +147,9 @@ export async function updateJobApplication(
     order: number;
     tags: string[];
     description: string;
-  }> = otherUpdates;
+    status: string;
+    appliedDate: Date | null;
+  }> = { ...otherUpdates } as any;
 
   const currentColumnId = jobApplication.columnId.toString();
   const newColumnId = columnId?.toString();
@@ -152,6 +158,15 @@ export async function updateJobApplication(
     newColumnId && newColumnId !== currentColumnId;
 
   if (isMovingTodifferentColumn) {
+    const targetColumn = await Column.findOne({
+      _id: newColumnId,
+      boardId: jobApplication.boardId,
+    });
+
+    if (!targetColumn) {
+      return { error: "Target column not found" };
+    }
+
     await Column.findByIdAndUpdate(currentColumnId, {
       $pull: { jobApplications: id },
     });
@@ -187,6 +202,17 @@ export async function updateJobApplication(
 
     updatesToApply.columnId = newColumnId;
     updatesToApply.order = newOrderValue;
+
+    // Automatically sync status with target column if not explicitly overridden
+    if (!updatesToApply.status) {
+      updatesToApply.status = targetColumn.name.toLowerCase().replace(/\s+/g, "-");
+    }
+
+    // Set appliedDate if moved into "Applied" column and not yet set
+    const isTargetApplied = targetColumn.name.toLowerCase() === "applied";
+    if (isTargetApplied && !jobApplication.appliedDate && !updatesToApply.appliedDate) {
+      updatesToApply.appliedDate = new Date();
+    }
 
     await Column.findByIdAndUpdate(newColumnId, {
       $push: { jobApplications: id },
