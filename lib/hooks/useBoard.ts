@@ -45,13 +45,10 @@ export function useBoard(initialBoard?: Board | null) {
             const targetColumn = newColumns[targetColumnIndex];
             const currentJobs = targetColumn.jobApplications || [];
 
-            const isTargetApplied = targetColumn.name.toLowerCase() === "applied";
             const updatedJobs = [...currentJobs];
             updatedJobs.splice(newOrder, 0,{
               ...jobToMove,
               columnId: newColumnId,
-              status: targetColumn.name.toLowerCase().replace(/\s+/g, "-"),
-              appliedDate: isTargetApplied ? (jobToMove.appliedDate || new Date().toISOString()) : jobToMove.appliedDate,
               order: newOrder * 100,
             });
             

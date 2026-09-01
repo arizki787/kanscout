@@ -28,13 +28,6 @@ export default function Navbar() {
                                     Dashboard
                                 </Button>
                             </Link>
-                            <Link href='/analytics'>
-                                <Button
-                                    variant='ghost'
-                                    className='text-gray-700 hover:text-black'>
-                                        Analytics
-                                </Button>
-                            </Link>
                             <DropdownMenu>
                                 <DropdownMenuTrigger render={
                                     <Button
