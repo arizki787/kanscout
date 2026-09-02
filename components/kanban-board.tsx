@@ -5,6 +5,7 @@ import {
   Award,
   Calendar,
   CheckCircle2,
+  Ghost,
   Mic,
   MoreVertical,
   Trash2,
@@ -71,6 +72,10 @@ const COLUMN_CONFIG: Array<ColConfig> = [
     color: "bg-red-500",
     icon: <XCircle className="h-4 w-4" />,
   },
+  {
+    color: "bg-gray-500",
+    icon: <Ghost />
+  }
 ];
 
 function DropableColumn({

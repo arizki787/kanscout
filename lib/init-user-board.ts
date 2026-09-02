@@ -1,51 +1,60 @@
 import connectDB from './db';
 import { Board, Column } from './models';
-import board from './models/board';
 
 // default data
 const DEFAULT_COLUMNS = [
-    { name: "Wish List", order: 0, },
-    { name: "Applied", order: 1, },
-    { name: "Interviewing", order: 2, },
-    { name: "Offer", order: 3, },
-    { name: "Rejected", order: 4, },
+    { name: "Wish List", order: 0 },
+    { name: "Applied", order: 1 },
+    { name: "Interviewing", order: 2 },
+    { name: "Offer", order: 3 },
+    { name: "Rejected", order: 4 },
+    { name: "Ghosted", order: 5 },
+];
 
-]
 export async function initializeUserBoard(userId: string) {
     try {
         await connectDB();
 
-        // check board if exist
-        const boardData = await Board.findOne({ userId, user: 'Job Hunt' });
+        // check if board exists
+        let board = await Board.findOne({ userId, name: 'Job Hunt' });
 
-        if (boardData) {
-            return boardData
+        if (!board) {
+            // create board
+            board = await Board.create({
+                name: 'Job Hunt',
+                userId,
+                columns: [],
+            });
         }
 
-        // create board
-        const board = await Board.create({
-            name: 'Job Hunt',
-            userId,
-            columns: [],
-        });
-
-        // create default columns
-        const columns = await Promise.all(
-            DEFAULT_COLUMNS.map((col) => 
-                Column.create({
-                    name: col.name,
-                    order: col.order,
-                    boardId: board._id,
-                    jobApplications: [],
-                })
-            )
+        // Check existing columns for this board to ensure none are missing
+        const existingColumns = await Column.find({ boardId: board._id });
+        const existingNames = new Set(
+            existingColumns.map((col) => col.name.trim().toLowerCase())
         );
-        
-        // update board wit new column id
-        board.columns = columns.map((col) => col._id);
-        await board.save();
-        return board;
 
+        const missingColumns = DEFAULT_COLUMNS.filter(
+            (col) => !existingNames.has(col.name.trim().toLowerCase())
+        );
+
+        if (missingColumns.length > 0) {
+            const newColumns = await Promise.all(
+                missingColumns.map((col) =>
+                    Column.create({
+                        name: col.name,
+                        order: col.order,
+                        boardId: board._id,
+                        jobApplications: [],
+                    })
+                )
+            );
+
+            // Append new column IDs to the board
+            board.columns.push(...newColumns.map((col) => col._id));
+            await board.save();
+        }
+
+        return board;
     } catch (err) {
         throw err;
     }
