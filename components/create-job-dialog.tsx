@@ -48,16 +48,19 @@ interface FormDataType {
 }
 
 function JobApplicationForm({
+  isButtonDisabled,
   formData,
   setFormData,
   onSubmit,
   onCancel,
 }: {
+  isButtonDisabled: boolean,
   formData: FormDataType;
   setFormData: (data: FormDataType) => void;
   onSubmit: (e: React.FormEvent) => void;
   onCancel: () => void;
 }) {
+
   return (
     <form className="space-y-4" onSubmit={onSubmit}>
       <div className="space-y-4">
@@ -158,7 +161,7 @@ function JobApplicationForm({
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit">Add Application</Button>
+        <Button disabled={isButtonDisabled} className={`${isButtonDisabled ? "bg-[#f76382]/50" : "bg-[#f76382]"} `} type="submit">Add Application</Button>
       </DialogFooter>
     </form>
   );
@@ -174,10 +177,11 @@ function CreateJobApplicationDialog({
 }: CreateJobApplicationDialogProps) {
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState(INITIAL_FORM_DATA);
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-
+    setIsButtonDisabled(true);
     try {
       const result = await createJobApplication({
         ...formData,
@@ -188,6 +192,7 @@ function CreateJobApplicationDialog({
           .map((tag) => tag.trim())
           .filter((tag) => tag.length > 0),
       });
+      setIsButtonDisabled(false);
       if (!result.error) {
         setFormData(INITIAL_FORM_DATA);
         setOpen(false);
@@ -196,6 +201,7 @@ function CreateJobApplicationDialog({
       }
     } catch (err) {
       console.error(err);
+      setIsButtonDisabled(false);
     }
   }
 
@@ -215,6 +221,7 @@ function CreateJobApplicationDialog({
           <DialogDescription>Track a new job application</DialogDescription>
         </DialogHeader>
         <JobApplicationForm
+          isButtonDisabled={isButtonDisabled}
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleSubmit}
@@ -227,7 +234,7 @@ function CreateJobApplicationDialog({
 
 export default CreateJobApplicationDialog;
 
-// Convenience export for no-button variant
+// Convenience export for no add job variant
 export function CreateJobApplicatDialogNoButton({
   columnId,
   boardId,

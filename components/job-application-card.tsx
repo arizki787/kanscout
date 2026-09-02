@@ -38,6 +38,7 @@ export default function JobApplicationCard({
 }: JobApplicationCardProps) {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const [formData, setFormData] = useState({
     company: job.company,
     position: job.position,
@@ -61,7 +62,7 @@ export default function JobApplicationCard({
 
   async function handleUpdate(e: React.FormEvent) {
     e.preventDefault();
-
+    setIsButtonDisabled(true);
     try {
       const result = await updateJobApplication(job._id, {
         ...formData,
@@ -70,13 +71,15 @@ export default function JobApplicationCard({
           .map((tag) => tag.trim())
           .filter((tag) => tag.length > 0),
       });
-
+      setIsButtonDisabled(false);
       if (!result.error){
         setIsEditing(false);
       }
-
+      setIsButtonDisabled(false);
+      
     } catch (err) {
       console.error("Failed to move job application: ", err);
+      setIsButtonDisabled(false);
     }
   }
   async function handleDelete() {
@@ -308,7 +311,7 @@ export default function JobApplicationCard({
               >
                 Cancel
               </Button>
-              <Button type="submit">Save Changes</Button>
+            <Button disabled={isButtonDisabled} className={`${isButtonDisabled ? "bg-[#f76382]/50" : "bg-[#f76382]"}`} type="submit">Save Changes</Button>
             </DialogFooter>
           </form>
         </DialogContent>
