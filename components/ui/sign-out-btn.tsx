@@ -3,22 +3,24 @@
 import { signOut } from "@/lib/auth/auth-client";
 import { DropdownMenuItem } from "./dropdown-menu";
 import { useRouter } from "next/navigation";
-signOut
 
-export default function SignOutButton(){
+export default function SignOutButton() {
     const router = useRouter();
-    return(
+
+    return (
         <DropdownMenuItem 
             onClick={async () => {
-                const result = await signOut();
-                if (result.data) {
-                    router.push('/sign-in');
-                } else {
-                    alert('Error signing out!');
-                }
+                await signOut({
+                    fetchOptions: {
+                        onSuccess: () => {
+                            router.push('/sign-in');
+                            router.refresh();
+                        },
+                    },
+                });
             }}
         >
             Log Out
         </DropdownMenuItem>
-    )
+    );
 }
