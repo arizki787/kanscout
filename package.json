@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "seed:jobs": "tsx --env-file=.env.local scripts/seed.ts",
-    "migrate:ghosted": "tsx --env-file=.env.local scripts/migrate-ghosted.ts"
+    "migrate:ghosted": "tsx --env-file=.env.local scripts/migrate-ghosted.ts",
+    "cleanup:user": "tsx --env-file=.env.local scripts/cleanup-user.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

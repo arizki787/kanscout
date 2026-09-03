@@ -11,6 +11,8 @@ import { useRouter } from "next/navigation";
 import { FaGoogle } from "react-icons/fa";
 import { Mail, CheckCircle2 } from "lucide-react";
 
+const RESEND_COOLDOWN = 60;
+
 export default function SignUp() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
@@ -21,6 +23,7 @@ export default function SignUp() {
     const [loading, setLoading] = useState(false);
     const [resendLoading, setResendLoading] = useState(false);
     const [resendMessage, setResendMessage] = useState("");
+    const [resendCooldown, setResendCooldown] = useState(0);
 
     const router = useRouter();
     const { data: session, isPending } = useSession();
@@ -30,6 +33,13 @@ export default function SignUp() {
             router.push('/dashboard');
         }
     }, [session, isPending, router]);
+
+    // Countdown tick
+    useEffect(() => {
+        if (resendCooldown <= 0) return;
+        const timer = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
+        return () => clearTimeout(timer);
+    }, [resendCooldown]);
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -48,6 +58,7 @@ export default function SignUp() {
                 setError(result.error.message ?? 'Failed to Sign Up');
             } else {
                 setEmailSent(true);
+                setResendCooldown(RESEND_COOLDOWN);
             }
         } catch (err) {
             setError('An unexpected error occurred!');
@@ -87,6 +98,7 @@ export default function SignUp() {
                 setError(result.error.message ?? "Failed to resend verification email.");
             } else {
                 setResendMessage("Verification email resent! Please check your inbox.");
+                setResendCooldown(RESEND_COOLDOWN);
             }
         } catch {
             setError("Failed to resend verification email.");
@@ -130,10 +142,14 @@ export default function SignUp() {
                                 type="button"
                                 variant="outline"
                                 onClick={handleResendVerification}
-                                disabled={resendLoading}
+                                disabled={resendLoading || resendCooldown > 0}
                                 className="w-full border-gray-300 hover:bg-gray-50"
                             >
-                                {resendLoading ? "Resending..." : "Resend verification email"}
+                                {resendLoading
+                                    ? "Resending..."
+                                    : resendCooldown > 0
+                                    ? `Resend available in ${resendCooldown}s`
+                                    : "Resend verification email"}
                             </Button>
 
                             <Button

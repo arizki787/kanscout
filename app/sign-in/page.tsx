@@ -12,6 +12,8 @@ import { FaGoogle } from "react-icons/fa";
 import { CheckCircle2, Mail } from "lucide-react";
 import { useSession } from "@/lib/auth/auth-client";
 
+const RESEND_COOLDOWN = 60;
+
 export default function SignIn() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -21,6 +23,7 @@ export default function SignIn() {
     const [isUnverified, setIsUnverified] = useState(false);
     const [resendLoading, setResendLoading] = useState(false);
     const [resendMessage, setResendMessage] = useState("");
+    const [resendCooldown, setResendCooldown] = useState(0);
 
     const router = useRouter();
     const { data: session, isPending } = useSession();
@@ -30,6 +33,13 @@ export default function SignIn() {
             router.push('/dashboard');
         }
     }, [session, isPending, router]);
+
+    // Countdown tick
+    useEffect(() => {
+        if (resendCooldown <= 0) return;
+        const timer = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
+        return () => clearTimeout(timer);
+    }, [resendCooldown]);
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -95,6 +105,7 @@ export default function SignIn() {
                 setError(result.error.message ?? "Failed to resend verification email.");
             } else {
                 setResendMessage("Verification email resent! Please check your inbox.");
+                setResendCooldown(RESEND_COOLDOWN);
             }
         } catch {
             setError("An error occurred while resending verification email.");
@@ -124,11 +135,15 @@ export default function SignIn() {
                                         <button
                                             type="button"
                                             onClick={handleResendVerification}
-                                            disabled={resendLoading}
-                                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-destructive underline hover:opacity-80 disabled:opacity-50"
+                                            disabled={resendLoading || resendCooldown > 0}
+                                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-destructive underline hover:opacity-80 disabled:opacity-50 disabled:no-underline disabled:cursor-not-allowed"
                                         >
                                             <Mail className="h-3.5 w-3.5" />
-                                            {resendLoading ? "Resending verification email..." : "Click here to resend verification email"}
+                                            {resendLoading
+                                                ? "Resending verification email..."
+                                                : resendCooldown > 0
+                                                ? `Resend available in ${resendCooldown}s`
+                                                : "Click here to resend verification email"}
                                         </button>
                                     </div>
                                 )}
