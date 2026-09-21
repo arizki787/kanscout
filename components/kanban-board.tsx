@@ -89,17 +89,13 @@ function DropableColumn({
   boardId: string;
   sortedColumns: Column[];
 }) {
-  const { setNodeRef, isOver } = useDroppable({
-    id: column._id,
-    data: {
-      type: "column",
-      columnId: column._id,
-    },
-  });
 
-  const sortedJobs =
-    column.jobApplications?.sort((a, b) => a.order - b.order) || [];
-
+const sortedJobs = [...(column.jobApplications || [])].sort((a, b) => {
+  const dateA = a.columnEnteredAt ?? a.createdAt ?? 0;
+  const dateB = b.columnEnteredAt ?? b.createdAt ?? 0;
+  
+  return new Date(dateB).getTime() - new Date(dateA).getTime();
+});
   return (
     <Card className="w-80 shrink-0 shadow-md p-0 mt-1">
       <CardHeader className={`${config.color} text-white pb-3 pt-3`}>
@@ -108,50 +104,24 @@ function DropableColumn({
             {config.icon}
             <CardTitle className="text-white text-base font-semibold">
               {column.name}
-            </CardTitle>
+            </CardTitle>  
           </div>
           <div className="ml-auto">
             <CreateJobApplicatDialogNoButton columnId={column._id} boardId={boardId} />
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 text-white hover:bg-white/20"
-                  >
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                }
-              ></DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem className="text-destructive">
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete Column
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         </div>
       </CardHeader>
 
       <CardContent
-        ref={setNodeRef}
-        className={`space-y-2 pt-4 bg-gray-50/50 px-4 max-h-[calc(100vh-250px)] overflow-y-auto rounded-b-lg ${isOver ? "ring-2 ring-blue-500" : ""}`}
+        className= "space-y-2 py-4 bg-gray-50/50 px-4 max-h-[calc(100vh-250px)] overflow-y-auto rounded-b-lg"
       >
-        <SortableContext
-          items={sortedJobs.map((job) => job._id)}
-          strategy={verticalListSortingStrategy}
-        >
-          {sortedJobs.map((job, key) => (
-            <SortableJobCard
-              key={key}
-              job={{ ...job, columnId: job.columnId || column._id }}
-              columns={sortedColumns}
-            />
-          ))}
-        </SortableContext>
-        <CreateJobApplicantDialog columnId={column._id} boardId={boardId} />
+        {sortedJobs.map((job, key) => (
+          <SortableJobCard
+            key={key}
+            job={{ ...job, columnId: job.columnId || column._id }}
+            columns={sortedColumns}
+          />
+        ))}
       </CardContent>
     </Card>
   );
@@ -199,14 +169,6 @@ export default function KanbanBoard({ board, userId }: KanbanBoardProps) {
   const { columns, moveJob } = useBoard(board);
 
   const sortedColumns = columns?.sort((a, b) => a.order - b.order);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8, //User move 8 pixel before drag start
-      },
-    }),
-  );
 
   async function handleDragStart(event: DragStartEvent) {
     setActiveId(event.active.id as string);
@@ -309,12 +271,6 @@ export default function KanbanBoard({ board, userId }: KanbanBoardProps) {
     .find((job) => job._id === activeId);
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCorners}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
       <div className="space-y-4">
         <div className="flex gap-4 overflow-x-auto pb-4">
           {sortedColumns.map((col, key) => {
@@ -334,13 +290,6 @@ export default function KanbanBoard({ board, userId }: KanbanBoardProps) {
           })}
         </div>
       </div>
-      <DragOverlay>
-        {activeJob ? (
-          <div className="opacity-50">
-            <JobApplicationCard job={activeJob} columns={sortedColumns} />
-          </div>
-        ) : null}
-      </DragOverlay>
-    </DndContext>
+
   );
 }

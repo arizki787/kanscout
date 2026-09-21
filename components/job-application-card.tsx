@@ -2,7 +2,7 @@
 
 import { Column, JobApplication } from "@/lib/models/models.types";
 import { Card, CardContent } from "./ui/card";
-import { Calendar, Edit2, ExternalLink, MoreVertical, Plus, Trash2 } from "lucide-react";
+import { Info, ExternalLink, MoreVertical, Plus, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -173,8 +173,8 @@ export default function JobApplicationCard({
                     className="text-xs"
                     onClick={() => setIsEditing(true)}
                   >
-                    <Edit2 className="mr-2 h-4 w-4" />
-                    Edit
+                    <Info className="mr-2 h-4 w-4" />
+                    Info
                   </DropdownMenuItem>
                   {columns.length > 1 && (
                     <>

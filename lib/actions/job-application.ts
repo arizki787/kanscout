@@ -114,6 +114,7 @@ export async function updateJobApplication(
     description?: string;
     status?: string;
     appliedDate?: Date | string | null;
+    columnEnteredAt?: Date | string | null;
   },
 ) {
   await connectDB();
