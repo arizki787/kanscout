@@ -19,23 +19,24 @@ export default function AnalyticsPieChart({
 }: AnalyticsPieChartProps) {
   if (totalApplied === 0) {
     return (
-      <div className="flex items-center justify-center h-[280px] text-muted-foreground text-sm">
+      <div className="flex items-center justify-center h-[200px] text-muted-foreground text-sm">
         No applications yet
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center gap-5">
-      <div className="w-[220px] h-[220px]">
+    <div className="flex flex-col items-center justify-between h-full gap-4 w-full">
+      {/* Responsive Chart Container: 160px on mobile, 180px on desktop */}
+      <div className="w-[160px] h-[160px] sm:w-[180px] sm:h-[180px] shrink-0 my-auto">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
               data={data}
               cx="50%"
               cy="50%"
-              innerRadius={55}
-              outerRadius={95}
+              innerRadius={40}
+              outerRadius={75}
               paddingAngle={3}
               dataKey="value"
               strokeWidth={0}
@@ -66,26 +67,26 @@ export default function AnalyticsPieChart({
         </ResponsiveContainer>
       </div>
 
-      {/* Legend */}
-      <div className="flex flex-col gap-2 w-full">
+      {/* Legend List */}
+      <div className="flex flex-col gap-2 w-full pt-3 border-t border-gray-100">
         {data.map((entry) => {
           const pct =
             totalApplied > 0
               ? ((entry.value / totalApplied) * 100).toFixed(1)
               : "0";
           return (
-            <div key={entry.name} className="flex items-center justify-between">
+            <div key={entry.name} className="flex items-center justify-between text-xs sm:text-sm">
               <div className="flex items-center gap-2">
                 <span
                   className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
                   style={{ backgroundColor: entry.color }}
                 />
-                <span className="text-sm text-gray-600">
+                <span className="text-gray-600 truncate max-w-[120px] sm:max-w-none">
                   {entry.name}
                 </span>
               </div>
-              <span className="text-sm font-semibold text-gray-900">
-                {entry.value} <span className="text-xs font-normal text-muted-foreground">({pct}%)</span>
+              <span className="font-semibold text-gray-900 shrink-0">
+                {entry.value} <span className="text-[11px] font-normal text-muted-foreground">({pct}%)</span>
               </span>
             </div>
           );
