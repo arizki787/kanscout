@@ -15,7 +15,6 @@
 ## ✨ Features
 
 - 🔍 **Scout Opportunities**: Organize your job search seamlessly. Store target roles and customize Kanban columns for every stage of looking for a job.
-- 📋 **Kanban Application Tracker**: Track job application progress from Wish List to Interviewing to Offer with intuitive drag-and-drop visual Kanban boards.
 - 📊 **All-in-One Dashboard**: Never lose track of a job application. View metrics including Total Applications, Active Interviews, Final Offers, and Rejection Rates at a glance.
 - 📝 **Application Management**: Keep all notes, interview schedules, salary details, and application statuses organized in one central place.
 
@@ -25,7 +24,6 @@
 
 - **Framework**: [Next.js 16](https://nextjs.org/) (App Router) & [React 19](https://react.dev/)
 - **Styling**: Tailwind CSS v4, Lucide Icons, Shadcn UI / Base UI
-- **Drag and Drop**: `@dnd-kit/core` & `@dnd-kit/sortable`
 - **Database & ODM**: MongoDB & Mongoose
 - **Authentication**: Better Auth
 
