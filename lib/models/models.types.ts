@@ -14,6 +14,7 @@ export interface JobApplication {
     appliedDate?: string | Date;
     createdAt?: string | Date;
     updatedAt?: string | Date;
+    columnEnteredAt: Date;
 }
 
 export interface Column{

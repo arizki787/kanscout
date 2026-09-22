@@ -114,6 +114,7 @@ export async function updateJobApplication(
     description?: string;
     status?: string;
     appliedDate?: Date | string | null;
+    columnEnteredAt?: Date | string | null;
   },
 ) {
   await connectDB();
@@ -149,6 +150,7 @@ export async function updateJobApplication(
     description: string;
     status: string;
     appliedDate: Date | null;
+    columnEnteredAt: Date | string | null;
   }> = { ...otherUpdates } as any;
 
   const currentColumnId = jobApplication.columnId.toString();
@@ -202,6 +204,7 @@ export async function updateJobApplication(
 
     updatesToApply.columnId = newColumnId;
     updatesToApply.order = newOrderValue;
+    updatesToApply.columnEnteredAt = new Date();
 
     // Automatically sync status with target column if not explicitly overridden
     if (!updatesToApply.status) {

@@ -15,6 +15,7 @@ export interface IJobApplication extends Document {
     appliedDate?: Date;
     tags?: string[];
     description?: string;
+    columnEnteredAt: Date; // <-- new
     createdAt: Date;
     updatedAt: Date;
 }
@@ -78,6 +79,10 @@ const JobApplicationSchema = new Schema<IJobApplication>(
         ],
         description: {
             type: String,
+        },
+        columnEnteredAt: {
+            type: Date,
+        default: Date.now,
         },
     },
     {

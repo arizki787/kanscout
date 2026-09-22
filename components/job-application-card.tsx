@@ -2,7 +2,7 @@
 
 import { Column, JobApplication } from "@/lib/models/models.types";
 import { Card, CardContent } from "./ui/card";
-import { Calendar, Edit2, ExternalLink, MoreVertical, Plus, Trash2 } from "lucide-react";
+import { Info, ExternalLink, MoreVertical, Plus, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,21 +23,18 @@ import {
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 interface JobApplicationCardProps {
   job: JobApplication;
   columns: Column[];
-  dragHandleProps?: React.HTMLAttributes<HTMLElement>;
 }
 
 export default function JobApplicationCard({
   job,
   columns,
-  dragHandleProps,
 }: JobApplicationCardProps) {
   const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [isMounted, setIsMounted] = useState(false);
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const [formData, setFormData] = useState({
     company: job.company,
@@ -55,10 +52,6 @@ export default function JobApplicationCard({
   const displayAppliedDate =
     job.appliedDate ||
     (isAppliedColumn ? job.createdAt || new Date() : null);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   async function handleUpdate(e: React.FormEvent) {
     e.preventDefault();
@@ -107,8 +100,7 @@ export default function JobApplicationCard({
   return (
     <>  
       <Card
-        className="cursor-pointer transition-shadow hover:shadow-lg bg-white group shadow-sm "
-        {...(isMounted ? dragHandleProps : {})}
+        className="cursor-pointer transition-shadow hover:shadow-lg bg-white group shadow-sm"
       >
         <CardContent className="px-4">
           <div className="flex items-start justify-between gap-2">
@@ -173,8 +165,8 @@ export default function JobApplicationCard({
                     className="text-xs"
                     onClick={() => setIsEditing(true)}
                   >
-                    <Edit2 className="mr-2 h-4 w-4" />
-                    Edit
+                    <Info className="mr-2 h-4 w-4" />
+                    Info
                   </DropdownMenuItem>
                   {columns.length > 1 && (
                     <>
@@ -205,7 +197,7 @@ export default function JobApplicationCard({
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Edit Job Application</DialogTitle>
+            <DialogTitle>Job Application Info</DialogTitle>
             <DialogDescription>Track a new job application</DialogDescription>
           </DialogHeader>
           <form className="space-y-4" onSubmit={handleUpdate}>
@@ -286,9 +278,8 @@ export default function JobApplicationCard({
                   rows={3}
                   placeholder="Brief description of the role..."
                   value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full break-all whitespace-pre-wrap"
                 />
               </div>
               <div className="space-y-2">
@@ -300,6 +291,7 @@ export default function JobApplicationCard({
                   onChange={(e) =>
                     setFormData({ ...formData, notes: e.target.value })
                   }
+                  className="w-full break-all whitespace-pre-wrap"
                 />
               </div>
             </div>
