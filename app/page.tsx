@@ -51,7 +51,7 @@ export default function Home() {
                   Kanban Application Tracker
                 </h3>
                 <p className="text-muted-foreground">
-                  Track job application progress from wishlist to interview to final offer with drag-and-drop visual Kanban boards.
+                  Track job application progress from wishlist to interview to final offer with visual Kanban boards.
                 </p>
               </div>
               <div className="flex flex-col">
