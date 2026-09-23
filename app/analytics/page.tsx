@@ -9,6 +9,7 @@ import {
   Send,
   XCircle,
   TrendingUp,
+  Ghost,
 } from "lucide-react";
 import { Suspense } from "react";
 import AnalyticsPieChart from "@/components/analytics-pie-chart";
@@ -19,6 +20,7 @@ const STATUS_COLORS = {
   interviewing: "#f59e0b",
   offered: "#10b981",
   rejected: "#ef4444",
+  ghosted: "#6B7280"
 };
 
 function getStatistics(board: BoardType) {
@@ -28,6 +30,7 @@ function getStatistics(board: BoardType) {
     interviewing: 0,
     offered: 0,
     rejected: 0,
+    ghosted: 0,
   };
 
   const columns = board?.columns || [];
@@ -44,6 +47,8 @@ function getStatistics(board: BoardType) {
       jobCount.offered = count;
     } else if (col?.name === "Interviewing") {
       jobCount.interviewing = count;
+    } else if (col?.name === "Ghosted") {
+      jobCount.ghosted = count;
     }
   });
 
@@ -65,6 +70,7 @@ async function AnalyticsPage() {
     { name: "Interviewing", value: jobData.interviewing, color: STATUS_COLORS.interviewing },
     { name: "Offered", value: jobData.offered, color: STATUS_COLORS.offered },
     { name: "Rejected", value: jobData.rejected, color: STATUS_COLORS.rejected },
+    { name: "Ghosted", value: jobData.ghosted, color: STATUS_COLORS.ghosted },
   ];
 
   const interviewRate = totalApplied > 0 
@@ -82,7 +88,7 @@ async function AnalyticsPage() {
       </div>
 
       {/* Top Stat Cards Grid: 2 cols on mobile, 3 on tablet, 6 on desktop */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3 sm:gap-4">
         {/* Total */}
         <div className="bg-white rounded-xl border border-gray-200/80 p-3.5 sm:p-4 shadow-xs flex items-center gap-3">
           <div className="p-2 sm:p-2.5 rounded-lg bg-primary/10 text-primary shrink-0">
@@ -169,6 +175,21 @@ async function AnalyticsPage() {
             </p>
             <p className="text-xl sm:text-2xl font-bold text-black leading-tight">
               {jobData.rejected}
+            </p>
+          </div>
+        </div>
+
+        {/* ghosted */}
+        <div className="bg-white rounded-xl border border-gray-200/80 p-3.5 sm:p-4 shadow-xs flex items-center gap-3">
+          <div className="p-2 sm:p-2.5 rounded-lg bg-gray-500/10 text-gray-500 shrink-0">
+            <Ghost className="h-4 w-4 sm:h-5 sm:w-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate">
+              Ghosted
+            </p>
+            <p className="text-xl sm:text-2xl font-bold text-black leading-tight">
+              {jobData.ghosted}
             </p>
           </div>
         </div>
