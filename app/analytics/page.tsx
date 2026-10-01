@@ -227,7 +227,7 @@ async function AnalyticsPage() {
                 <p className="text-xs text-muted-foreground font-medium">Offer Conversion</p>
                 <p className="text-xl sm:text-2xl font-bold text-gray-900">
                   {jobData.interviewing > 0 
-                    ? ((jobData.offered / jobData.interviewing) * 100).toFixed(0) 
+                    ? ((jobData.offered / (jobData.interviewing + jobData.offered)) * 100).toFixed(0) 
                     : 0}%
                 </p>
               </div>
