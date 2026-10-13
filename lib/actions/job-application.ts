@@ -4,7 +4,7 @@ import { connect } from "http2";
 import { getSession } from "../auth/auth";
 import connectDB from "../db";
 import { Board, Column, JobApplication } from "../models";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { json } from "better-auth";
 import jobApplication from "../models/job-application";
 
@@ -94,6 +94,7 @@ export async function createJobApplication(data: JobApplicationData) {
     $push: { jobApplications: jobApplication._id },
   });
 
+  updateTag(`board-${session.user.id}`);
   revalidatePath("/dashboard");
 
   return { data: JSON.parse(JSON.stringify(jobApplication)) };
@@ -264,8 +265,8 @@ export async function updateJobApplication(
     returnDocument: "after",
   });
 
+  updateTag(`board-${session.user.id}`);
   revalidatePath("/dashboard");
-
   return { data: JSON.parse(JSON.stringify(updated)) };
 }
 
@@ -294,7 +295,7 @@ export async function deleteJobApplication(id: string) {
 
   await JobApplication.deleteOne({ _id: id });
 
+  updateTag(`board-${session.user.id}`);
   revalidatePath("/dashboard");
-
   return { success: true };
 }
