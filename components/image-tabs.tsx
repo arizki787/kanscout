@@ -23,14 +23,14 @@ export default function ImageTabs(){
                     Organize Applications
                     </Button>
                     <Button 
-                    onClick={() => setActiveTab('hired')}
+                    onClick={() => setActiveTab('analytics')}
                     className={`rounded-lg px-6 py-3 text-sm font-medium transition-colors 
-                        ${activeTab === 'hired' 
+                        ${activeTab === 'analytics' 
                         ? 'bg-primary text-white' 
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                     >
-                    Get Hired
+                    Check Analytics
                     </Button>
                     <Button onClick={() => setActiveTab('boards')}
                     className={`rounded-lg px-6 py-3 text-sm font-medium transition-colors 
@@ -51,10 +51,10 @@ export default function ImageTabs(){
                         height={800}
                     />
                     )}
-                    {activeTab === 'hired' && (
+                    {activeTab === 'analytics' && (
                     <Image 
                         src='/hero-images/hero2.jpg' 
-                        alt='hired'
+                        alt='analytics'
                         width={1200}
                         height={800}
                     />
