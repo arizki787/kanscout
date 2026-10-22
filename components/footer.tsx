@@ -9,10 +9,10 @@ export default function Footer() {
   return (
     <footer className="border-t border-gray-200 bg-white py-8 mt-auto">
       <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-4 md:flex-row">
-        <div className="flex items-center gap-2 text-primary font-semibold text-lg">
-          <Briefcase className="h-5 w-5" />
-          <span>KANSCOUT</span>
-        </div>
+        <Link href='/' className="flex items-center gap-2 text-primary text-xl font-semibold">
+            <Briefcase />
+            KANSCOUT
+        </Link>
 
         <p className="text-sm text-muted-foreground text-center md:text-left">
           &copy; {currentYear} Kanscout. Visual Kanban Board for Job Search & Application Tracking. All rights reserved.

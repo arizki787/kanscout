@@ -129,7 +129,10 @@ export default function PrivacyPolicyPage() {
           <section>
             <h2 className="text-xl font-semibold text-gray-900 mb-3">9. Contact Us</h2>
             <p className="leading-relaxed">
-              If you have any questions or concerns regarding this Privacy Policy or your data, please contact us at support@kanscout.com or submit feedback via the Kanscout application.
+              If you have any questions or concerns regarding this Privacy Policy or your data, please contact us at{" "}
+              <a href="mailto:adityarizkimuhammad25@gmail.com" className="text-primary underline hover:text-primary/80 font-medium">
+                adityarizkimuhammad25@gmail.com
+              </a>.
             </p>
           </section>
         </div>
