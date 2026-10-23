@@ -246,6 +246,12 @@ export default function SignUp() {
                                     <FaGoogle className="w-4 h-4"/>
                                     {loading ? "Signing Up ..." : "Sign Up With Google"}
                                 </Button>
+                                <p className="text-xs text-muted-foreground text-center px-2">
+                                    By signing up, you agree to our{" "}
+                                    <Link href="/privacy" className="font-medium text-primary underline hover:text-primary/80">
+                                        Privacy Policy
+                                    </Link>.
+                                </p>
                                 <p>
                                     Already have an account? {" "} 
                                     <Link 

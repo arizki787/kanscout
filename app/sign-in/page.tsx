@@ -199,8 +199,14 @@ export default function SignIn() {
                             <FaGoogle className="w-4 h-4"/>
                             {loading ? "Signing In ..." : "Sign In With Google"}
                         </Button>
+                        <p className="text-xs text-muted-foreground text-center px-2">
+                            By signing in, you agree to our{" "}
+                            <Link href="/privacy" className="font-medium text-primary underline hover:text-primary/80">
+                                Privacy Policy
+                            </Link>.
+                        </p>
                         <p>
-                            Don't have an account? {" "} 
+                            Don&apos;t have an account? {" "}
                             <Link 
                                 href='/sign-up'
                                 className="font-medium text-primary hover:underline"
