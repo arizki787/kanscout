@@ -24,6 +24,8 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { useState } from "react";
+import JobSourceSelect from "./job-source-select";
+import { inferJobSource } from "@/lib/job-source";
 
 interface JobApplicationCardProps {
   job: JobApplication;
@@ -43,6 +45,7 @@ export default function JobApplicationCard({
     notes: job.notes || "",
     salary: job.salary || "",
     jobUrl: job.jobUrl || "",
+    source: job.source ?? inferJobSource(job.jobUrl),
     tags: job.tags?.join(", ") || "",
     description: job.description || "",
   });
@@ -100,6 +103,7 @@ export default function JobApplicationCard({
   return (
     <>  
       <Card
+        onClick={() => setIsEditing(true)}
         className="cursor-pointer transition-shadow hover:shadow-lg bg-white group shadow-sm"
       >
         <CardContent className="px-4">
@@ -154,13 +158,17 @@ export default function JobApplicationCard({
             <div className="flex items-start gap-1">
               <DropdownMenu>
                 <DropdownMenuTrigger
+                  onClick={(event) => event.stopPropagation()}
                   render={
                     <Button variant="ghost" size="icon" className="h-6 w-6">
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   }
                 />
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent
+                  align="end"
+                  onClick={(event) => event.stopPropagation()}
+                >
                   <DropdownMenuItem
                     className="text-xs"
                     onClick={() => setIsEditing(true)}
@@ -255,11 +263,21 @@ export default function JobApplicationCard({
                   id="jobUrl"
                   placeholder="https://..."
                   value={formData.jobUrl}
-                  onChange={(e) =>
-                    setFormData({ ...formData, jobUrl: e.target.value })
-                  }
+                  onChange={(e) => {
+                    const jobUrl = e.target.value;
+                    setFormData({
+                      ...formData,
+                      jobUrl,
+                      source: inferJobSource(jobUrl),
+                    });
+                  }}
                 />
               </div>
+              <JobSourceSelect
+                id="source"
+                value={formData.source}
+                onChange={(source) => setFormData({ ...formData, source })}
+              />
               <div className="space-y-2">
                 <Label htmlFor="tags">Tags (comma-seperated)</Label>
                 <Input
@@ -279,7 +297,7 @@ export default function JobApplicationCard({
                   placeholder="Brief description of the role..."
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full break-all whitespace-pre-wrap"
+                  className="w-full max-h-30 min-h-24 overflow-y-auto resize-y break-words whitespace-pre-wrap rounded-xl border px-4 py-3"
                 />
               </div>
               <div className="space-y-2">
@@ -291,7 +309,7 @@ export default function JobApplicationCard({
                   onChange={(e) =>
                     setFormData({ ...formData, notes: e.target.value })
                   }
-                  className="w-full break-all whitespace-pre-wrap"
+                  className="w-full max-h-30 min-h-24 overflow-y-auto resize-y break-words whitespace-pre-wrap rounded-xl border px-4 py-3"
                 />
               </div>
             </div>

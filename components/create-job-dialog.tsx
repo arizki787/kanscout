@@ -15,14 +15,29 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { useState } from "react";
 import { createJobApplication } from "@/lib/actions/job-application";
+import JobSourceSelect from "./job-source-select";
+import { inferJobSource, type JobSource } from "@/lib/job-source";
 
-const INITIAL_FORM_DATA = {
+interface FormDataType {
+  company: string;
+  position: string;
+  location: string;
+  notes: string;
+  salary: string;
+  jobUrl: string;
+  source: JobSource;
+  tags: string;
+  description: string;
+}
+
+const INITIAL_FORM_DATA: FormDataType = {
   company: "",
   position: "",
   location: "",
   notes: "",
   salary: "",
   jobUrl: "",
+  source: "other",
   tags: "",
   description: "",
 };
@@ -34,17 +49,6 @@ interface CreateJobApplicationDialogProps {
   buttonLabel?: string;
   showLabel?: boolean;
   buttonClassName?: string;
-}
-
-interface FormDataType {
-  company: string;
-  position: string;
-  location: string;
-  notes: string;
-  salary: string;
-  jobUrl: string;
-  tags: string;
-  description: string;
 }
 
 function JobApplicationForm({
@@ -117,11 +121,21 @@ function JobApplicationForm({
             id="jobUrl"
             placeholder="https://..."
             value={formData.jobUrl}
-            onChange={(e) =>
-              setFormData({ ...formData, jobUrl: e.target.value })
-            }
+            onChange={(e) => {
+              const jobUrl = e.target.value;
+              setFormData({
+                ...formData,
+                jobUrl,
+                source: inferJobSource(jobUrl),
+              });
+            }}
           />
         </div>
+        <JobSourceSelect
+          id="source"
+          value={formData.source}
+          onChange={(source) => setFormData({ ...formData, source })}
+        />
         <div className="space-y-2">
           <Label htmlFor="tags">Tags (comma-seperated)</Label>
           <Input
@@ -136,6 +150,7 @@ function JobApplicationForm({
         <div className="space-y-2">
           <Label htmlFor="description">Description</Label>
           <Textarea
+            className="w-full max-h-30 min-h-24 overflow-y-auto resize-y break-words whitespace-pre-wrap rounded-xl border px-4 py-3"
             id="description"
             rows={3}
             placeholder="Brief description of the role..."
@@ -148,6 +163,7 @@ function JobApplicationForm({
         <div className="space-y-2">
           <Label htmlFor="notes">Notes</Label>
           <Textarea
+            className="w-full max-h-30 min-h-24 overflow-y-auto resize-y break-words whitespace-pre-wrap rounded-xl border px-4 py-3"
             id="notes"
             rows={4}
             value={formData.notes}

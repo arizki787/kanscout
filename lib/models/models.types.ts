@@ -1,3 +1,5 @@
+import type { JobSource } from "../job-source";
+
 export interface JobApplication {
     _id: string;
     company: string;
@@ -7,6 +9,7 @@ export interface JobApplication {
     notes?: string;
     salary?: string;
     jobUrl?: string;
+    source?: JobSource;
     order: number;
     columnId?: string;
     tags?: string[];

@@ -1,12 +1,10 @@
 "use server";
 
-import { connect } from "http2";
 import { getSession } from "../auth/auth";
 import connectDB from "../db";
 import { Board, Column, JobApplication } from "../models";
 import { revalidatePath, updateTag } from "next/cache";
-import { json } from "better-auth";
-import jobApplication from "../models/job-application";
+import { inferJobSource, isJobSource, type JobSource } from "../job-source";
 
 interface JobApplicationData {
   company: string;
@@ -15,6 +13,7 @@ interface JobApplicationData {
   notes?: string;
   salary?: string;
   jobUrl?: string;
+  source?: JobSource;
   columnId: string;
   boardId: string;
   tags?: string[];
@@ -37,6 +36,7 @@ export async function createJobApplication(data: JobApplicationData) {
     notes,
     salary,
     jobUrl,
+    source,
     columnId,
     boardId,
     tags,
@@ -45,6 +45,10 @@ export async function createJobApplication(data: JobApplicationData) {
 
   if (!company || !position || !columnId || !boardId) {
     return { error: "Missing required fields" };
+  }
+
+  if (source !== undefined && !isJobSource(source)) {
+    return { error: "Invalid job source" };
   }
 
   const board = await Board.findOne({
@@ -80,6 +84,7 @@ export async function createJobApplication(data: JobApplicationData) {
     notes,
     salary,
     jobUrl,
+    source: isJobSource(source) ? source : inferJobSource(jobUrl),
     columnId,
     boardId,
     userId: session.user.id,
@@ -109,6 +114,7 @@ export async function updateJobApplication(
     notes?: string;
     salary?: string;
     jobUrl?: string;
+    source?: JobSource;
     columnId?: string;
     order?: number;
     tags?: string[];
@@ -136,6 +142,14 @@ export async function updateJobApplication(
     return { error: "Unauthorized" };
   }
 
+  if (
+    "source" in updates &&
+    updates.source !== undefined &&
+    !isJobSource(updates.source)
+  ) {
+    return { error: "Invalid job source" };
+  }
+
   const { columnId, order, ...otherUpdates } = updates;
 
   const updatesToApply: Partial<{
@@ -145,14 +159,23 @@ export async function updateJobApplication(
     notes: string;
     salary: string;
     jobUrl: string;
+    source: JobSource;
     columnId: string;
     order: number;
     tags: string[];
     description: string;
     status: string;
-    appliedDate: Date | null;
+    appliedDate: Date | string | null;
     columnEnteredAt: Date | string | null;
-  }> = { ...otherUpdates } as any;
+  }> = { ...otherUpdates };
+
+  if ("source" in updates) {
+    updatesToApply.source = isJobSource(updates.source)
+      ? updates.source
+      : inferJobSource(updates.jobUrl ?? jobApplication.jobUrl);
+  } else if ("jobUrl" in updates) {
+    updatesToApply.source = inferJobSource(updates.jobUrl);
+  }
 
   const currentColumnId = jobApplication.columnId.toString();
   const newColumnId = columnId?.toString();

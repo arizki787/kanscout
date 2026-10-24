@@ -36,6 +36,14 @@ export default function Navbar() {
                                     Analytics
                                 </Button>
                             </Link>
+                            <Link href='/agent'>
+                                <Button
+                                    variant='ghost'
+                                    className='text-gray-700 hover:text-black'
+                                >
+                                    Agent
+                                </Button>
+                            </Link>
                             <DropdownMenu>
                                 <DropdownMenuTrigger render={
                                     <Button
