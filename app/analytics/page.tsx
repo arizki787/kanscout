@@ -13,6 +13,14 @@ import {
 } from "lucide-react";
 import { Suspense } from "react";
 import AnalyticsPieChart from "@/components/analytics-pie-chart";
+import {
+  JOB_SOURCES,
+  JOB_SOURCE_COLORS,
+  JOB_SOURCE_LABELS,
+  inferJobSource,
+  isJobSource,
+  type JobSource,
+} from "@/lib/job-source";
 
 const STATUS_COLORS = {
   wishlist: "#6366f1",
@@ -55,6 +63,27 @@ function getStatistics(board: BoardType) {
   return jobCount;
 }
 
+function getSourceStatistics(board: BoardType): Record<JobSource, number> {
+  const sourceCount: Record<JobSource, number> = {
+    linkedin: 0,
+    jobstreet: 0,
+    indeed: 0,
+    glints: 0,
+    other: 0,
+  };
+
+  for (const column of board?.columns || []) {
+    for (const job of column?.jobApplications || []) {
+      const source = isJobSource(job.source)
+        ? job.source
+        : inferJobSource(job.jobUrl);
+      sourceCount[source] += 1;
+    }
+  }
+
+  return sourceCount;
+}
+
 async function AnalyticsPage() {
   const session = await getSession();
   const board = await getBoard(session?.user?.id ?? "", "");
@@ -62,6 +91,11 @@ async function AnalyticsPage() {
   const totalApplied = Object.values(jobData).reduce(
     (sum, value) => sum + value,
     0
+  );
+  const sourceData = getSourceStatistics(board);
+  const totalJobs = Object.values(sourceData).reduce(
+    (sum, value) => sum + value,
+    0,
   );
 
   const chartData = [
@@ -72,6 +106,12 @@ async function AnalyticsPage() {
     { name: "Rejected", value: jobData.rejected, color: STATUS_COLORS.rejected },
     { name: "Ghosted", value: jobData.ghosted, color: STATUS_COLORS.ghosted },
   ];
+
+  const sourceChartData = JOB_SOURCES.map((source) => ({
+    name: JOB_SOURCE_LABELS[source],
+    value: sourceData[source],
+    color: JOB_SOURCE_COLORS[source],
+  }));
 
   const interviewRate = totalApplied > 0 
     ? ((jobData.interviewing / totalApplied) * 100).toFixed(1) 
@@ -246,7 +286,12 @@ async function AnalyticsPage() {
             Distribution
           </h2>
           <div className="flex-1 flex flex-col justify-between">
-            <AnalyticsPieChart data={chartData} totalApplied={totalApplied} />
+            <AnalyticsPieChart
+              statusData={chartData}
+              sourceData={sourceChartData}
+              statusTotal={totalApplied}
+              sourceTotal={totalJobs}
+            />
           </div>
         </div>
       </div>

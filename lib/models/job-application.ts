@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
+import { JOB_SOURCES, type JobSource } from "../job-source";
 
 export interface IJobApplication extends Document {
     company: string;
@@ -12,6 +13,7 @@ export interface IJobApplication extends Document {
     notes?: string;
     salary?: string;
     jobUrl?: string;
+    source?: JobSource;
     appliedDate?: Date;
     tags?: string[];
     description?: string;
@@ -68,6 +70,10 @@ const JobApplicationSchema = new Schema<IJobApplication>(
         },
         jobUrl: {
             type: String,
+        },
+        source: {
+            type: String,
+            enum: JOB_SOURCES,
         },
         appliedDate: {
             type: Date,
