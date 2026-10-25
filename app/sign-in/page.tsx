@@ -65,6 +65,7 @@ export default function SignIn() {
             }
         } catch (err) {
             setError('An unexpected error occurred!');
+            console.error(err);
         } finally {
             setLoading(false);
         }
@@ -83,6 +84,7 @@ export default function SignIn() {
             }
         } catch (err) {
             setError('OAuth error occured!');
+            console.error(err);
         } finally {
             setLoading(false);
         }

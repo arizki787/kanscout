@@ -1,3 +1,4 @@
+import type { Types } from "mongoose";
 import connectDB from "../lib/db";
 import "@/lib/models";
 import { Board, Column } from "@/lib/models";
@@ -49,7 +50,7 @@ async function migrate() {
         const ghostedCol = columns.find(
           (col) => col.name.trim().toLowerCase() === "ghosted"
         );
-        if (ghostedCol && !board.columns.some((id: any) => id.toString() === ghostedCol._id.toString())) {
+        if (ghostedCol && !board.columns.some((id: Types.ObjectId) => id.toString() === ghostedCol._id.toString())) {
           board.columns.push(ghostedCol._id);
           await board.save();
           console.log(`🔗 Linked existing 'Ghosted' column to board ${board._id}`);

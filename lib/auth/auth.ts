@@ -79,7 +79,7 @@ export const auth = betterAuth({
         sendOnSignUp: true,
         sendOnSignIn: true,
         autoSignInAfterVerification: true,
-        sendVerificationEmail: async ({ user, url, token }, request) => {
+        sendVerificationEmail: async ({ user, url}) => {
 
             if (!process.env.RESEND_API_KEY) {
                 console.warn(

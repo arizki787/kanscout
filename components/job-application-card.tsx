@@ -2,7 +2,7 @@
 
 import { Column, JobApplication } from "@/lib/models/models.types";
 import { Card, CardContent } from "./ui/card";
-import { Info, ExternalLink, MoreVertical, Plus, Trash2 } from "lucide-react";
+import { Info, ExternalLink, MoreVertical, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,7 +18,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "./ui/dialog";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
@@ -93,7 +92,7 @@ export default function JobApplicationCard({
 
   async function handleMove(newColumnId: string) {
     try {
-      const result = await updateJobApplication(job._id, {
+      await updateJobApplication(job._id, {
         columnId: newColumnId,
       });
     } catch (err) {
