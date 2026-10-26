@@ -13,11 +13,12 @@ export default function Navbar() {
     return (
         <nav className="flex border-b border-gray-200 bg-white">
             <div className="container mx-auto flex h-16 items-center px-4 justify-between">
-                <Link href='/' className="flex items-center gap-2 text-primary text-xl font-semibold">
-                    <Briefcase />
-                    KANSCOUT
+
+                <Link href='/' className="flex items-center gap-2">
+                    <Briefcase className="text-primary text-xl font-semibold"/>
+                    <p className="hidden lg:block text-primary text-xl font-semibold">KANSCOUT</p>
                 </Link>
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-4 md:flex-nowrap">
                     {session?.user ? (
                         <>
                             <Link href='/dashboard'>

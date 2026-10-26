@@ -8,9 +8,9 @@ export default function Home() {
     <div className="flex min-h-screen flex-col bg-white">
       <main className="flex-1">
         {/* titles section */}
-        <section className="container mx-auto px-4 py-32">
+        <section className="container mx-auto px-4 py-20 sm:py-32">
           <div className="mx-auto max-w-4xl text-center">
-            <h1 className="text-black mb-6 text-5xl font-bold">
+            <h1 className="text-black mb-6 text-4xl sm:text-5xl font-bold">
               Scout jobs and track applications with <span className="text-primary">Kanscout</span>
             </h1>
             <p className="text-muted-foreground mb-10 text-xl max-w-2xl mx-auto">

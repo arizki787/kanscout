@@ -19,7 +19,7 @@ async function DashboardPage(props: DashboardProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="container mx-auto p-6 space-y-8">
+      <div className="container mx-auto p-4 sm:p-6 space-y-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-black">{board?.name ?? "Job Board"}</h1>

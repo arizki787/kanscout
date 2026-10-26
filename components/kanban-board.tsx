@@ -69,7 +69,7 @@ function KanbanColumn({
   });
 
   return (
-    <Card className="w-80 shrink-0 shadow-md p-0 mt-1">
+    <Card className="w-[260px] sm:w-80 shrink-0 shadow-md p-0 mt-1">
       <CardHeader className={`${config.color} text-white pb-3 pt-3`}>
         <div className="flex w-full items-center gap-2">
           <div className="flex items-center gap-2">
@@ -87,7 +87,7 @@ function KanbanColumn({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-2 py-4 bg-gray-50/50 px-4 max-h-[calc(100vh-250px)] overflow-y-auto rounded-b-lg">
+      <CardContent className="space-y-2 py-4 bg-gray-50/50 px-4 max-h-[calc(100dvh-250px)] overflow-y-auto rounded-b-lg">
         {sortedJobs.map((job) => (
           <JobApplicationCard
             key={job._id}
