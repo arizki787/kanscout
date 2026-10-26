@@ -4,6 +4,7 @@ import KanbanBoard from "@/components/kanban-board";
 import { Suspense } from "react";
 import Search from "@/components/search";
 
+
 interface DashboardProps {
   searchParams?: Promise<{
     query?: string;
