@@ -22,6 +22,7 @@ import {
   type JobSource,
 } from "@/lib/job-source";
 
+
 const STATUS_COLORS = {
   wishlist: "#6366f1",
   applied: "#3b82f6",

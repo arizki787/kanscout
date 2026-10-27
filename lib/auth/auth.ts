@@ -19,15 +19,14 @@ if (!googleClientId || !googleClientSecret) {
 }
 
 const globalForMongo = globalThis as typeof globalThis & {
-    __mongoClientPromise?: Promise<MongoClient>;
+    __mongoClient?: MongoClient;
 };
 
-if (!globalForMongo.__mongoClientPromise) {
-    const mongoClient = new MongoClient(mongoUri);
-    globalForMongo.__mongoClientPromise = mongoClient.connect();
+if (!globalForMongo.__mongoClient) {
+    globalForMongo.__mongoClient = new MongoClient(mongoUri);
 }
 
-const client = await globalForMongo.__mongoClientPromise;
+const client = globalForMongo.__mongoClient;
 const db = client.db();
 
 function getSenderEmail(): string {
@@ -79,7 +78,7 @@ export const auth = betterAuth({
         sendOnSignUp: true,
         sendOnSignIn: true,
         autoSignInAfterVerification: true,
-        sendVerificationEmail: async ({ user, url, token }, request) => {
+        sendVerificationEmail: async ({ user, url}) => {
 
             if (!process.env.RESEND_API_KEY) {
                 console.warn(
