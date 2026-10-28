@@ -65,13 +65,9 @@ function getStatistics(board: BoardType) {
 }
 
 function getSourceStatistics(board: BoardType): Record<JobSource, number> {
-  const sourceCount: Record<JobSource, number> = {
-    linkedin: 0,
-    jobstreet: 0,
-    indeed: 0,
-    glints: 0,
-    other: 0,
-  };
+  const sourceCount = Object.fromEntries(
+    JOB_SOURCES.map((source) => [source, 0])
+  ) as Record<JobSource, number>;
 
   for (const column of board?.columns || []) {
     for (const job of column?.jobApplications || []) {

@@ -82,7 +82,8 @@ export default function AnalyticsPieChart({
                   outerRadius={75}
                   paddingAngle={3}
                   dataKey="value"
-                  strokeWidth={0}
+                  stroke="#ffffff"
+                  strokeWidth={2}
                 >
                   {data.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />

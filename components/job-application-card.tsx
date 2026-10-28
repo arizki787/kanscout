@@ -202,10 +202,10 @@ export default function JobApplicationCard({
         </CardContent>
       </Card>
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="max-h-9/10 lg:max-h-screen overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Job Application Info</DialogTitle>
-            <DialogDescription>Track a new job application</DialogDescription>
+            <DialogDescription>View the job application</DialogDescription>
           </DialogHeader>
           <form className="space-y-4" onSubmit={handleUpdate}>
             <div className="space-y-4">

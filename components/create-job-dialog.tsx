@@ -231,7 +231,7 @@ function CreateJobApplicationDialog({
           </Button>
         }
       ></DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-h-9/10 lg:max-h-screen overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add Job Application</DialogTitle>
           <DialogDescription>Track a new job application</DialogDescription>
