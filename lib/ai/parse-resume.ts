@@ -1,7 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
-import fs from "node:fs";
-import { parse } from "node:path";
+
 export interface ParsedResume {
   personalInfo: {
     fullName?: string;
@@ -120,11 +119,11 @@ Rules:
 - For dates, use the format found in the resume (e.g. "Jan 2022", "2022", "January 2022 - March 2023").
 - If a section is not present in the resume, use an empty array [] for list fields.`;
 
-/**
- * Parses a resume PDF buffer using Google Gemini multimodal AI.
- * Returns structured profile data matching the 7 accordion sections.
- */
-
+type PdfLinkAnnotation = {
+  subtype: string;
+  url: string;
+  rect: [number, number, number, number];
+};
 
 export async function extractPdfText(pdfBuffer: Buffer): Promise<string> {
   const doc = await getDocument({ data: new Uint8Array(pdfBuffer) }).promise;
@@ -134,14 +133,22 @@ export async function extractPdfText(pdfBuffer: Buffer): Promise<string> {
     const page = await doc.getPage(i);
     const content = await page.getTextContent();
     const links = (await page.getAnnotations()).filter(
-      (a: any) => a.subtype === "Link" && a.url
+      (annotation): annotation is PdfLinkAnnotation =>
+        annotation.subtype === "Link" &&
+        typeof annotation.url === "string" &&
+        Array.isArray(annotation.rect) &&
+        annotation.rect.length === 4 &&
+        annotation.rect.every(
+          (coordinate: unknown) => typeof coordinate === "number"
+        )
     );
     const usedLinks = new Set<number>();
 
     let line = "";
     let lastY: number | null = null;
 
-    for (const item of content.items as any[]) {
+    for (const item of content.items) {
+      if (!("str" in item)) continue;
       const [, , , , x, y] = item.transform;
 
       if (lastY !== null && Math.abs(y - lastY) > 2) {
@@ -152,7 +159,7 @@ export async function extractPdfText(pdfBuffer: Buffer): Promise<string> {
 
       let str: string = item.str;
 
-      const idx = links.findIndex((a: any) => {
+      const idx = links.findIndex((a) => {
         const [x1, y1, x2, y2] = a.rect;
         return x >= x1 - 1 && x <= x2 + 1 && y >= y1 - 2 && y <= y2 + 2;
       });
@@ -168,16 +175,20 @@ export async function extractPdfText(pdfBuffer: Buffer): Promise<string> {
     out += line + "\n";
 
     // icon-only / unmatched links
-    const orphans = links.filter((_: any, i: number) => !usedLinks.has(i));
+    const orphans = links.filter((_, i) => !usedLinks.has(i));
     if (orphans.length) {
       out += "\n[Unmatched links on this page]\n";
-      out += orphans.map((a: any) => `- ${a.url}`).join("\n") + "\n";
+      out += orphans.map((a) => `- ${a.url}`).join("\n") + "\n";
     }
     out += "\n";
   }
   return out;
 }
 
+/**
+ * Parses extracted resume text using Google Gemini.
+ * Returns structured profile data matching the 7 accordion sections.
+ */
 export async function parseResumeWithGemini(
   parsed_text: string
 ): Promise<ParsedResume> {

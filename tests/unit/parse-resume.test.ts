@@ -14,13 +14,13 @@ vi.mock("@google/genai", () => {
 });
 
 describe("parseResumeWithGemini", () => {
-  const dummyBuffer = Buffer.from("dummy pdf content");
+  const dummyText = "Dummy extracted resume text";
 
   it("throws error if GEMINI_API_KEY is not set", async () => {
     const originalKey = process.env.GEMINI_API_KEY;
     delete process.env.GEMINI_API_KEY;
 
-    await expect(parseResumeWithGemini(dummyBuffer)).rejects.toThrow(
+    await expect(parseResumeWithGemini(dummyText)).rejects.toThrow(
       "GEMINI_API_KEY is not set"
     );
 
@@ -87,7 +87,7 @@ describe("parseResumeWithGemini", () => {
       text: JSON.stringify(mockResponseData),
     });
 
-    const result = await parseResumeWithGemini(dummyBuffer);
+    const result = await parseResumeWithGemini(dummyText);
 
     expect(result.personalInfo.fullName).toBe("Alex Morgan");
     expect(result.personalInfo.email).toBe("alex@example.com");
@@ -121,7 +121,7 @@ describe("parseResumeWithGemini", () => {
       text: "```json\n" + JSON.stringify(mockResponseData) + "\n```",
     });
 
-    const result = await parseResumeWithGemini(dummyBuffer);
+    const result = await parseResumeWithGemini(dummyText);
     expect(result.personalInfo.fullName).toBe("Sarah Connor");
     expect(result.skills).toEqual(["Cybersecurity"]);
   });
