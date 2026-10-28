@@ -48,6 +48,14 @@ describe("lib/job-source", () => {
       expect(inferJobSource("glints.com/jobs")).toBe("glints");
     });
 
+    it("identifies Dealls URLs", () => {
+      expect(inferJobSource("https://dealls.com/jobs/12345")).toBe("dealls");
+      expect(inferJobSource("https://www.dealls.com/loker/software-engineer")).toBe("dealls");
+      expect(inferJobSource("https://usedeall.com/jobs/view")).toBe("dealls");
+      expect(inferJobSource("https://app.dealls.com/jobs")).toBe("dealls");
+      expect(inferJobSource("dealls.id/jobs")).toBe("dealls");
+    });
+
     it("falls back to 'other' for unknown or malformed URLs", () => {
       expect(inferJobSource("https://example.com/careers/software-engineer")).toBe("other");
       expect(inferJobSource("not a valid url :// oops")).toBe("other");

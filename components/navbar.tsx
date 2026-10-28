@@ -7,6 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuLabel
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import SignOutButton from "./ui/sign-out-btn";
 import { useSession } from "@/lib/auth/auth-client";
+import ProfileButton from "./ui/profile-btn";
 
 export default function Navbar() {
     const {data: session} = useSession();
@@ -67,6 +68,7 @@ export default function Navbar() {
                                                 <p className='text-xs leading-none text-muted-foreground'>{session.user.email}</p>
                                             </div>
                                         </DropdownMenuLabel>
+                                        <ProfileButton/>
                                         <SignOutButton/>
                                     </DropdownMenuGroup>
                                 </DropdownMenuContent>

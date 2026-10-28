@@ -19,6 +19,16 @@ vi.mock("@/lib/auth/auth", () => ({
   },
 }));
 
+// Mock @/lib/supabase/storage globally
+vi.mock("@/lib/supabase/storage", () => ({
+  uploadResumeToStorage: vi.fn().mockResolvedValue({
+    url: "https://example.supabase.co/storage/v1/object/public/kanscout-storage/resumes/test.pdf",
+    storagePath: "resumes/test/123-test.pdf",
+  }),
+  deleteResumeFromStorage: vi.fn().mockResolvedValue(undefined),
+  getSupabaseClient: vi.fn(),
+}));
+
 afterEach(() => {
   vi.clearAllMocks();
 });
