@@ -1,14 +1,9 @@
-'use client';
-
 import { DropdownMenuItem } from "./dropdown-menu";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function ProfileButton() {
-    const router = useRouter();
-
     return (
-
-        <DropdownMenuItem onClick={() => router.push("/profile")}>
+        <DropdownMenuItem render={<Link href="/profile" />}>
             Profile
         </DropdownMenuItem>
     );

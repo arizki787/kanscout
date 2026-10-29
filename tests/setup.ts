@@ -19,13 +19,19 @@ vi.mock("@/lib/auth/auth", () => ({
   },
 }));
 
-// Mock @/lib/supabase/storage globally
+// Mock @/lib/supabase/storage globally.
+// uploadResumeToStorage now returns the stable app-relative URL (/api/profile/resume)
+// instead of a Supabase public URL, because the bucket is private and access is
+// gated through the authenticated GET /api/profile/resume route.
 vi.mock("@/lib/supabase/storage", () => ({
   uploadResumeToStorage: vi.fn().mockResolvedValue({
-    url: "https://example.supabase.co/storage/v1/object/public/kanscout-storage/resumes/test.pdf",
+    url: "/api/profile/resume",
     storagePath: "resumes/test/123-test.pdf",
   }),
   deleteResumeFromStorage: vi.fn().mockResolvedValue(undefined),
+  getSignedResumeUrl: vi.fn().mockResolvedValue(
+    "https://example.supabase.co/storage/v1/object/sign/kanscout-storage/resumes/test/123-test.pdf?token=abc"
+  ),
   getSupabaseClient: vi.fn(),
 }));
 

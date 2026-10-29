@@ -19,12 +19,13 @@ export function getSupabaseClient(): SupabaseClient {
   return cachedClient;
 }
 
-const BUCKET = "kanscout-storage";
+const BUCKET = process.env.SUPABASE_STORAGE_BUCKET || "kanscout-storage";
 const FOLDER = "resumes";
 
 /**
  * Uploads a resume file buffer to Supabase Storage.
- * Returns the public URL and the storage path.
+ * Returns the app-relative URL (/api/profile/resume) and the storage path.
+ * The bucket is private; access is gated through the authenticated API route.
  */
 export async function uploadResumeToStorage(
   userId: string,
@@ -47,14 +48,34 @@ export async function uploadResumeToStorage(
     throw new Error(`Supabase upload failed: ${error.message}`);
   }
 
-  const { data: urlData } = supabase.storage
-    .from(BUCKET)
-    .getPublicUrl(storagePath);
-
   return {
-    url: urlData.publicUrl,
+    // Store a stable app-relative URL; the actual signed URL is generated on demand
+    // by GET /api/profile/resume to avoid exposing a public or pre-signed bucket URL.
+    url: "/api/profile/resume",
     storagePath,
   };
+}
+
+/**
+ * Creates a short-lived signed URL (valid for `expiresIn` seconds) to view a private resume.
+ * Call this server-side inside an authenticated route; never expose it directly to clients.
+ */
+export async function getSignedResumeUrl(
+  storagePath: string,
+  expiresIn: number = 60
+): Promise<string> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase.storage
+    .from(BUCKET)
+    .createSignedUrl(storagePath, expiresIn);
+
+  if (error || !data?.signedUrl) {
+    throw new Error(
+      `Failed to generate signed URL: ${error?.message ?? "Unknown error"}`
+    );
+  }
+
+  return data.signedUrl;
 }
 
 /**
