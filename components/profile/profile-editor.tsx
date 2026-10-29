@@ -383,7 +383,7 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
               </p>
             </div>
             <a
-              href={profile.resume.url}
+              href="/api/profile/resume"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-xs text-primary hover:underline shrink-0"

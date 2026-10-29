@@ -1,7 +1,9 @@
 import { getSession } from "@/lib/auth/auth";
-import { uploadResumeToStorage } from "@/lib/supabase/storage";
+import { deleteResumeFromStorage, uploadResumeToStorage } from "@/lib/supabase/storage";
 import { extractPdfText, parseResumeWithGemini } from "@/lib/ai/parse-resume";
 import { NextRequest, NextResponse } from "next/server";
+import connectDB from "@/lib/db";
+import { Profile } from "@/lib/models";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_MIME = "application/pdf";
@@ -44,15 +46,30 @@ export async function POST(req: NextRequest) {
       parseResumeWithGemini(pdf_data),
     ]);
 
+    const resume = {
+      url: storageResult.url,
+      storagePath: storageResult.storagePath,
+      fileName: file.name,
+      fileSize: file.size,
+      uploadedAt: new Date(),
+    };
+
+    await connectDB();
+    const saved = await Profile.findOneAndUpdate(
+      { userId: session.user.id },
+      { $set: { resume } },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    ).lean<{ resume?: { storagePath?: string } }>();
+
+    if (!saved?.resume?.storagePath) {
+      // DB write failed or strict mode dropped it
+      await deleteResumeFromStorage(storageResult.storagePath);
+      return NextResponse.json({ error: "Failed to save resume" }, { status: 500 });
+    }
+
     return NextResponse.json({
       success: true,
-      resume: {
-        url: storageResult.url,
-        storagePath: storageResult.storagePath,
-        fileName: file.name,
-        fileSize: file.size,
-        uploadedAt: new Date().toISOString(),
-      },
+      resume: { ...resume, uploadedAt: resume.uploadedAt.toISOString() },
       parsedData,
     });
   } catch (err) {
