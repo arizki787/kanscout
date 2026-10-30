@@ -152,7 +152,7 @@ const SAMPLE_JOBS = [
 async function seed() {
   if (!USER_ID) {
     console.error("❌ Error: SEED_USER_ID environment variable is required");
-    console.log("Usage: SEED_USER_ID=your-user-id npm run seed");
+    console.log("Usage: SEED_USER_ID=your-user-id pnpm seed:jobs");
     process.exit(1);
   }
 
