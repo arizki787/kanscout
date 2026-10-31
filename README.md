@@ -33,7 +33,8 @@
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 22.13+
+- pnpm 10.33.0
 - MongoDB instance (local or MongoDB Atlas)
 
 ### Installation
@@ -44,9 +45,9 @@
    cd kanscout
    ```
 
-2. Install dependencies:
+2. Install dependencies with pnpm:
    ```bash
-   npm install
+   pnpm install
    ```
 
 3. Configure Environment Variables (`.env.local`):
@@ -58,12 +59,12 @@
 
 4. (Optional) Seed sample data:
    ```bash
-   npm run seed:jobs
+   pnpm seed:jobs
    ```
 
 5. Run the development server:
    ```bash
-   npm run dev
+   pnpm dev
    ```
 
 6. Open [http://localhost:3000](http://localhost:3000) in your browser.

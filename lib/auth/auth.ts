@@ -82,7 +82,7 @@ export const auth = betterAuth({
 
             if (!process.env.RESEND_API_KEY) {
                 console.warn(
-                    "[Email Verification] Warning: RESEND_API_KEY is not defined in process.env. If you just added it to .env.local, restart your dev server (npm run dev)."
+                    "[Email Verification] Warning: RESEND_API_KEY is not defined in process.env. If you just added it to .env.local, restart your dev server (pnpm dev)."
                 );
                 return;
             }
