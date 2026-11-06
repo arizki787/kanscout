@@ -4,6 +4,7 @@ import ProfileEditor from "@/components/profile/profile-editor";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import NotFound from "../not-found";
 
 
 export const metadata: Metadata = {
@@ -32,7 +33,8 @@ export default function ProfilePage() {
     <Suspense
       fallback={<p className="p-6 text-muted-foreground">Loading profile...</p>}
     >
-      <UserProfile />
+      {/* <UserProfile /> */}
+      <NotFound/>
     </Suspense>
   );
 }

@@ -68,7 +68,7 @@ export default function Navbar() {
                                                 <p className='text-xs leading-none text-muted-foreground'>{session.user.email}</p>
                                             </div>
                                         </DropdownMenuLabel>
-                                        <ProfileButton/>
+                                        {/* <ProfileButton/> */}
                                         <SignOutButton/>
                                     </DropdownMenuGroup>
                                 </DropdownMenuContent>
