@@ -33,8 +33,7 @@ export default function ProfilePage() {
     <Suspense
       fallback={<p className="p-6 text-muted-foreground">Loading profile...</p>}
     >
-      {/* <UserProfile /> */}
-      <NotFound/>
+      <UserProfile />
     </Suspense>
   );
 }

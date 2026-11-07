@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { generateTextWithFallback } from "@/lib/ai/generate-text";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 
 export interface ParsedResume {
@@ -186,28 +186,17 @@ export async function extractPdfText(pdfBuffer: Buffer): Promise<string> {
 }
 
 /**
- * Parses extracted resume text using Google Gemini.
+ * Parses extracted resume text using Gemini with Groq as a fallback.
  * Returns structured profile data matching the 7 accordion sections.
  */
 export async function parseResumeWithGemini(
   parsed_text: string
 ): Promise<ParsedResume> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error("GEMINI_API_KEY is not set.");
-  }
-
-  const model = process.env.GEMINI_MODEL || "gemini-3.1-flash-lite";
-  const ai = new GoogleGenAI({ apiKey });
-
-  const response = await ai.models.generateContent({
-    model,
-    contents: parsed_text + PARSE_PROMPT
+  const text = await generateTextWithFallback({
+    prompt: `${parsed_text}\n\n${PARSE_PROMPT}`,
+    json: true,
   });
 
-  const text = response.text?.trim() ?? "";
-
-  // Strip markdown fences if Gemini wraps in ```json ... ```
   const cleaned = text
     .replace(/^```(?:json)?\s*/i, "")
     .replace(/\s*```$/, "")
@@ -217,7 +206,7 @@ export async function parseResumeWithGemini(
   try {
     parsed = JSON.parse(cleaned);
   } catch {
-    throw new Error(`Gemini returned invalid JSON. Raw response: ${text.slice(0, 500)}`);
+    throw new Error(`AI provider returned invalid JSON. Raw response: ${text.slice(0, 500)}`);
   }
 
   // Ensure all array fields are arrays (defensive)
