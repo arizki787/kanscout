@@ -4,6 +4,10 @@ export const JOB_SOURCES = [
   "indeed",
   "glints",
   "dealls",
+  "greenhouse",
+  "lever",
+  "workable",
+  "wellfound",
   "other",
 ] as const;
 
@@ -15,6 +19,10 @@ export const JOB_SOURCE_LABELS: Record<JobSource, string> = {
   indeed: "Indeed",
   glints: "Glints",
   dealls: "Dealls",
+  greenhouse: "Greenhouse",
+  lever: "Lever",
+  workable: "Workable",
+  wellfound: "Wellfound",
   other: "Other",
 };
 
@@ -24,6 +32,10 @@ export const JOB_SOURCE_COLORS: Record<JobSource, string> = {
   indeed: "#4f46e5",
   glints: "#10b981",
   dealls: "#06b6d4",
+  greenhouse: "#20a879",
+  lever: "#3b82f6",
+  workable: "#2563eb",
+  wellfound: "#f97316",
   other: "#64748b",
 };
 
@@ -83,6 +95,24 @@ export function inferJobSource(jobUrl?: string | null): JobSource {
   ) {
     return "dealls";
   }
+
+  if (
+    matchesDomain(hostname, "boards.greenhouse.io") ||
+    matchesDomain(hostname, "job-boards.greenhouse.io")
+  ) {
+    return "greenhouse";
+  }
+
+  if (matchesDomain(hostname, "jobs.lever.co")) return "lever";
+
+  if (
+    matchesDomain(hostname, "apply.workable.com") ||
+    matchesDomain(hostname, "jobs.workable.com")
+  ) {
+    return "workable";
+  }
+
+  if (matchesDomain(hostname, "wellfound.com")) return "wellfound";
 
   return "other";
 }

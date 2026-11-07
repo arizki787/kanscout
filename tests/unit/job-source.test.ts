@@ -56,6 +56,13 @@ describe("lib/job-source", () => {
       expect(inferJobSource("dealls.id/jobs")).toBe("dealls");
     });
 
+    it("identifies Greenhouse, Lever, Workable, and Wellfound URLs", () => {
+      expect(inferJobSource("https://boards.greenhouse.io/acme/jobs/123")).toBe("greenhouse");
+      expect(inferJobSource("https://jobs.lever.co/acme/123")).toBe("lever");
+      expect(inferJobSource("https://apply.workable.com/acme/j/123")).toBe("workable");
+      expect(inferJobSource("https://www.wellfound.com/jobs/123")).toBe("wellfound");
+    });
+
     it("falls back to 'other' for unknown or malformed URLs", () => {
       expect(inferJobSource("https://example.com/careers/software-engineer")).toBe("other");
       expect(inferJobSource("not a valid url :// oops")).toBe("other");

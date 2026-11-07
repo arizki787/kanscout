@@ -43,7 +43,7 @@ export default function Navbar() {
                                     variant='ghost'
                                     className='text-gray-700 hover:text-black'
                                 >
-                                    Agent
+                                    Scout
                                 </Button>
                             </Link>
                             <DropdownMenu>
@@ -68,7 +68,7 @@ export default function Navbar() {
                                                 <p className='text-xs leading-none text-muted-foreground'>{session.user.email}</p>
                                             </div>
                                         </DropdownMenuLabel>
-                                        {/* <ProfileButton/> */}
+                                        <ProfileButton/>
                                         <SignOutButton/>
                                     </DropdownMenuGroup>
                                 </DropdownMenuContent>

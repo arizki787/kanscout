@@ -1,8 +1,10 @@
-import { describe, it, expect, vi } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import { parseResumeWithGemini } from "@/lib/ai/parse-resume";
 
 // Mock @google/genai
 const mockGenerateContent = vi.fn();
+const originalGeminiApiKey = process.env.GEMINI_API_KEY;
+const originalGroqApiKey = process.env.GROQ_API_KEY;
 vi.mock("@google/genai", () => {
   return {
     GoogleGenAI: class {
@@ -13,22 +15,36 @@ vi.mock("@google/genai", () => {
   };
 });
 
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.clearAllMocks();
+  if (originalGeminiApiKey === undefined) {
+    delete process.env.GEMINI_API_KEY;
+  } else {
+    process.env.GEMINI_API_KEY = originalGeminiApiKey;
+  }
+  if (originalGroqApiKey === undefined) {
+    delete process.env.GROQ_API_KEY;
+  } else {
+    process.env.GROQ_API_KEY = originalGroqApiKey;
+  }
+});
+
 describe("parseResumeWithGemini", () => {
   const dummyText = "Dummy extracted resume text";
 
   it("throws error if GEMINI_API_KEY is not set", async () => {
-    const originalKey = process.env.GEMINI_API_KEY;
     delete process.env.GEMINI_API_KEY;
+    delete process.env.GROQ_API_KEY;
 
     await expect(parseResumeWithGemini(dummyText)).rejects.toThrow(
-      "GEMINI_API_KEY is not set"
+      "GEMINI_API_KEY or GROQ_API_KEY is not configured"
     );
-
-    process.env.GEMINI_API_KEY = originalKey;
   });
 
   it("parses valid JSON response from Gemini into structured profile sections", async () => {
     process.env.GEMINI_API_KEY = "test-api-key";
+    delete process.env.GROQ_API_KEY;
 
     const mockResponseData = {
       personalInfo: {
@@ -107,6 +123,7 @@ describe("parseResumeWithGemini", () => {
 
   it("handles markdown json wrapped responses cleanly", async () => {
     process.env.GEMINI_API_KEY = "test-api-key";
+    delete process.env.GROQ_API_KEY;
 
     const mockResponseData = {
       personalInfo: { fullName: "Sarah Connor" },
@@ -124,5 +141,40 @@ describe("parseResumeWithGemini", () => {
     const result = await parseResumeWithGemini(dummyText);
     expect(result.personalInfo.fullName).toBe("Sarah Connor");
     expect(result.skills).toEqual(["Cybersecurity"]);
+  });
+
+  it("uses Groq when no Gemini key is configured", async () => {
+    delete process.env.GEMINI_API_KEY;
+    process.env.GROQ_API_KEY = "test-groq-key";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            choices: [
+              {
+                message: {
+                  content: JSON.stringify({
+                    personalInfo: { fullName: "Taylor Example" },
+                    skills: ["TypeScript"],
+                  }),
+                },
+              },
+            ],
+          }),
+          { headers: { "content-type": "application/json" } },
+        ),
+      ),
+    );
+
+    const result = await parseResumeWithGemini(dummyText);
+
+    expect(result.personalInfo.fullName).toBe("Taylor Example");
+    expect(fetch).toHaveBeenCalledWith(
+      "https://api.groq.com/openai/v1/chat/completions",
+      expect.objectContaining({
+        body: expect.stringContaining('"model":"openai/gpt-oss-120b"'),
+      }),
+    );
   });
 });
