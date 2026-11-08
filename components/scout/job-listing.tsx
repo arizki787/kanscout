@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { addScoutedJobToWishlist } from "@/lib/actions/scouted-job";
@@ -378,10 +380,31 @@ export default function JobListing({
         </p>
       )}
       {scoreError && (
-        <p className="rounded-lg border bg-muted/40 px-4 py-3 text-xs text-muted-foreground">
-          {scoreError} Listings are still available; match scores will show as
-          “Not scored”.
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4 text-xs">
+          <div className="flex items-start gap-2.5 text-foreground">
+            <Sparkles className="size-4 text-primary shrink-0 mt-0.5" aria-hidden="true" />
+            <div>
+              <p className="font-medium text-foreground">
+                {scoreError === "Add profile details to get a match score."
+                  ? "Want to see your personalized match scores?"
+                  : scoreError}
+              </p>
+              <p className="text-muted-foreground mt-0.5 leading-relaxed">
+                {scoreError === "Add profile details to get a match score."
+                  ? "No CV required! Simply add a few skills or your job title in your profile to unlock Gemini match scores."
+                  : "Listings are still available; match scores will show as “Not scored”."}
+              </p>
+            </div>
+          </div>
+          {scoreError === "Add profile details to get a match score." && (
+            <Link
+              href="/profile"
+              className="inline-flex shrink-0 items-center justify-center rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              Complete Profile
+            </Link>
+          )}
+        </div>
       )}
 
       <div className="flex items-center justify-between gap-3">
