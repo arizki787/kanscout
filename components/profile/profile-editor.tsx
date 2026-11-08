@@ -17,6 +17,7 @@ import {
   CheckCircle,
   AlertCircle,
   ExternalLink,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -433,6 +434,24 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
             )}
           </Button>
           <p className="text-xs text-gray-400">PDF only, max 10MB</p>
+        </div>
+
+        {/* AI Notice & Privacy Transparency */}
+        <div className="mt-4 rounded-lg border border-blue-100 bg-blue-50/60 p-3.5 text-xs text-blue-950">
+          <div className="flex items-start gap-2.5">
+            <Shield className="h-4 w-4 text-primary shrink-0 mt-0.5" aria-hidden="true" />
+            <div className="space-y-1">
+              <p className="font-medium text-blue-900">
+                AI-assisted resume parsing
+              </p>
+              <p className="text-blue-800/80 leading-relaxed">
+                Uploading a resume extracts text and uses Google Gemini AI to auto-fill the sections below. Your resume is never used to train public AI models.
+              </p>
+              <p className="text-blue-800/70">
+                <strong>Prefer manual entry?</strong> Resume upload is completely optional. You can fill out or edit any section directly below without uploading a file.
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Status banners */}

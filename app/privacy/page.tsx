@@ -88,6 +88,9 @@ export default function PrivacyPolicyPage() {
                 <strong>Resend:</strong> For dispatching transactional emails (e.g., account verification links).
               </li>
               <li>
+                <strong>Google Gemini (AI Processing):</strong> For automated resume text extraction and calculating personalized job match scores. Personal data submitted to the AI processing pipeline is processed ephemerally and is not used to train public AI models.
+              </li>
+              <li>
                 <strong>Google Analytics:</strong> For aggregate, pseudonymous usage analytics to improve website usability.
               </li>
             </ul>
