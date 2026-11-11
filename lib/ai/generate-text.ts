@@ -1,14 +1,14 @@
 import { GoogleGenAI } from "@google/genai";
 
 const REQUEST_TIMEOUT_MS = 20_000;
-const GROQ_MODEL = "openai/gpt-oss-120b";
+const AGNES_MODEL = "agnes-2.5-flash";
 
 interface GenerateTextOptions {
   prompt: string;
   json?: boolean;
 }
 
-interface GroqChatCompletion {
+interface ChatCompletion {
   choices?: Array<{
     message?: {
       content?: string | null;
@@ -16,12 +16,12 @@ interface GroqChatCompletion {
   }>;
 }
 
-async function generateTextWithGroq(
+async function generateTextWithAgnes(
   apiKey: string,
   { prompt, json = false }: GenerateTextOptions,
 ): Promise<string> {
   const response = await fetch(
-    "https://api.groq.com/openai/v1/chat/completions",
+    "https://apihub.agnes-ai.com/v1/chat/completions",
     {
       method: "POST",
       headers: {
@@ -29,7 +29,7 @@ async function generateTextWithGroq(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: GROQ_MODEL,
+        model: AGNES_MODEL,
         messages: [{ role: "user", content: prompt }],
         ...(json ? { response_format: { type: "json_object" } } : {}),
       }),
@@ -40,14 +40,14 @@ async function generateTextWithGroq(
   if (!response.ok) {
     const details = await response.text();
     throw new Error(
-      `Groq request failed (${response.status}): ${details || response.statusText}`,
+      `Agnes request failed (${response.status}): ${details || response.statusText}`,
     );
   }
 
-  const result = (await response.json()) as GroqChatCompletion;
+  const result = (await response.json()) as ChatCompletion;
   const text = result.choices?.[0]?.message?.content?.trim();
   if (!text) {
-    throw new Error("Groq returned an empty response.");
+    throw new Error("Agnes returned an empty response.");
   }
   return text;
 }
@@ -56,7 +56,7 @@ export async function generateTextWithFallback(
   options: GenerateTextOptions,
 ): Promise<string> {
   const geminiApiKey = process.env.GEMINI_API_KEY;
-  const groqApiKey = process.env.GROQ_API_KEY;
+  const agnesApiKey = process.env.AGNES_API_KEY;
 
   if (geminiApiKey) {
     try {
@@ -80,19 +80,19 @@ export async function generateTextWithFallback(
       }
       return text;
     } catch (error) {
-      if (!groqApiKey) {
+      if (!agnesApiKey) {
         throw new Error(
-          "Gemini request failed and GROQ_API_KEY is not configured.",
+          "Gemini request failed and AGNES_API_KEY is not configured.",
           { cause: error },
         );
       }
-      console.warn("[AI] Gemini request failed; using Groq fallback.");
+      console.warn("[AI] Gemini request failed; using Agnes fallback.");
     }
   }
 
-  if (!groqApiKey) {
-    throw new Error("GEMINI_API_KEY or GROQ_API_KEY is not configured.");
+  if (!agnesApiKey) {
+    throw new Error("GEMINI_API_KEY or AGNES_API_KEY is not configured.");
   }
 
-  return generateTextWithGroq(groqApiKey, options);
+  return generateTextWithAgnes(agnesApiKey, options);
 }

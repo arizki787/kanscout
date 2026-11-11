@@ -391,7 +391,7 @@ export default function JobListing({
               </p>
               <p className="text-muted-foreground mt-0.5 leading-relaxed">
                 {scoreError === "Add profile details to get a match score."
-                  ? "No CV required! Simply add a few skills or your job title in your profile to unlock Gemini match scores."
+                  ? "No CV required! Simply add a few skills or your job title in your profile to unlock AI-powered match scores."
                   : "Listings are still available; match scores will show as “Not scored”."}
               </p>
             </div>

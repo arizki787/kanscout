@@ -88,7 +88,7 @@ export default function PrivacyPolicyPage() {
                 <strong>Resend:</strong> For dispatching transactional emails (e.g., account verification links).
               </li>
               <li>
-                <strong>Google Gemini (AI Processing):</strong> For automated resume text extraction and calculating personalized job match scores. Personal data submitted to the AI processing pipeline is processed ephemerally and is not used to train public AI models.
+                <strong>Google Gemini and Agnes AI (AI Processing):</strong> Resume text and relevant profile and job details may be sent to Google Gemini first, with Agnes AI used when Gemini is unavailable or not configured, to extract resume details and calculate personalized job match scores.
               </li>
               <li>
                 <strong>Google Analytics:</strong> For aggregate, pseudonymous usage analytics to improve website usability.

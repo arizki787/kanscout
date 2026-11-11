@@ -186,7 +186,7 @@ export async function extractPdfText(pdfBuffer: Buffer): Promise<string> {
 }
 
 /**
- * Parses extracted resume text using Gemini with Groq as a fallback.
+ * Parses extracted resume text using Gemini with Agnes as a fallback.
  * Returns structured profile data matching the 7 accordion sections.
  */
 export async function parseResumeWithGemini(

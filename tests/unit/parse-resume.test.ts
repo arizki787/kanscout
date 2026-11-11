@@ -4,7 +4,7 @@ import { parseResumeWithGemini } from "@/lib/ai/parse-resume";
 // Mock @google/genai
 const mockGenerateContent = vi.fn();
 const originalGeminiApiKey = process.env.GEMINI_API_KEY;
-const originalGroqApiKey = process.env.GROQ_API_KEY;
+const originalAgnesApiKey = process.env.AGNES_API_KEY;
 vi.mock("@google/genai", () => {
   return {
     GoogleGenAI: class {
@@ -23,28 +23,28 @@ afterEach(() => {
   } else {
     process.env.GEMINI_API_KEY = originalGeminiApiKey;
   }
-  if (originalGroqApiKey === undefined) {
-    delete process.env.GROQ_API_KEY;
+  if (originalAgnesApiKey === undefined) {
+    delete process.env.AGNES_API_KEY;
   } else {
-    process.env.GROQ_API_KEY = originalGroqApiKey;
+    process.env.AGNES_API_KEY = originalAgnesApiKey;
   }
 });
 
 describe("parseResumeWithGemini", () => {
   const dummyText = "Dummy extracted resume text";
 
-  it("throws error if GEMINI_API_KEY is not set", async () => {
+  it("throws an error if neither provider key is configured", async () => {
     delete process.env.GEMINI_API_KEY;
-    delete process.env.GROQ_API_KEY;
+    delete process.env.AGNES_API_KEY;
 
     await expect(parseResumeWithGemini(dummyText)).rejects.toThrow(
-      "GEMINI_API_KEY or GROQ_API_KEY is not configured"
+      "GEMINI_API_KEY or AGNES_API_KEY is not configured"
     );
   });
 
   it("parses valid JSON response from Gemini into structured profile sections", async () => {
     process.env.GEMINI_API_KEY = "test-api-key";
-    delete process.env.GROQ_API_KEY;
+    delete process.env.AGNES_API_KEY;
 
     const mockResponseData = {
       personalInfo: {
@@ -123,7 +123,7 @@ describe("parseResumeWithGemini", () => {
 
   it("handles markdown json wrapped responses cleanly", async () => {
     process.env.GEMINI_API_KEY = "test-api-key";
-    delete process.env.GROQ_API_KEY;
+    delete process.env.AGNES_API_KEY;
 
     const mockResponseData = {
       personalInfo: { fullName: "Sarah Connor" },
@@ -143,9 +143,9 @@ describe("parseResumeWithGemini", () => {
     expect(result.skills).toEqual(["Cybersecurity"]);
   });
 
-  it("uses Groq when no Gemini key is configured", async () => {
+  it("uses Agnes when no Gemini key is configured", async () => {
     delete process.env.GEMINI_API_KEY;
-    process.env.GROQ_API_KEY = "test-groq-key";
+    process.env.AGNES_API_KEY = "test-agnes-key";
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue(
@@ -171,9 +171,46 @@ describe("parseResumeWithGemini", () => {
 
     expect(result.personalInfo.fullName).toBe("Taylor Example");
     expect(fetch).toHaveBeenCalledWith(
-      "https://api.groq.com/openai/v1/chat/completions",
+      "https://apihub.agnes-ai.com/v1/chat/completions",
       expect.objectContaining({
-        body: expect.stringContaining('"model":"openai/gpt-oss-120b"'),
+        body: expect.stringContaining('"model":"agnes-2.5-flash"'),
+      }),
+    );
+  });
+
+  it("falls back to Agnes after a Gemini request fails", async () => {
+    process.env.GEMINI_API_KEY = "test-api-key";
+    process.env.AGNES_API_KEY = "test-agnes-key";
+    mockGenerateContent.mockRejectedValueOnce(new Error("Gemini unavailable"));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            choices: [
+              {
+                message: {
+                  content: JSON.stringify({
+                    personalInfo: { fullName: "Fallback Example" },
+                    skills: [],
+                  }),
+                },
+              },
+            ],
+          }),
+          { headers: { "content-type": "application/json" } },
+        ),
+      ),
+    );
+
+    const result = await parseResumeWithGemini(dummyText);
+
+    expect(mockGenerateContent).toHaveBeenCalledOnce();
+    expect(result.personalInfo.fullName).toBe("Fallback Example");
+    expect(fetch).toHaveBeenCalledWith(
+      "https://apihub.agnes-ai.com/v1/chat/completions",
+      expect.objectContaining({
+        body: expect.stringContaining('"model":"agnes-2.5-flash"'),
       }),
     );
   });
