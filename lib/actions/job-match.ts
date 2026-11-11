@@ -91,9 +91,9 @@ export async function scoreJobsForCurrentUser(
     url,
     description: null,
   }));
-  if (!process.env.GEMINI_API_KEY && !process.env.GROQ_API_KEY) {
+  if (!process.env.GEMINI_API_KEY && !process.env.AGNES_API_KEY) {
     return {
-      error: "GEMINI_API_KEY or GROQ_API_KEY is not configured.",
+      error: "GEMINI_API_KEY or AGNES_API_KEY is not configured.",
       descriptions: unavailableDescriptions,
     };
   }

@@ -1,15 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { mockGenerateContent } = vi.hoisted(() => ({
-  mockGenerateContent: vi.fn(),
-}));
-
-vi.mock("@google/genai", () => ({
-  GoogleGenAI: class {
-    models = { generateContent: mockGenerateContent };
-  },
-}));
-
 import { scoreJobsForCurrentUser } from "@/lib/actions/job-match";
 import Profile from "@/lib/models/profile";
 import { mockSession } from "../helpers/auth-mock";
@@ -20,24 +10,31 @@ describe("scoreJobsForCurrentUser", () => {
 
   const userId = "job_match_test_user";
   const jobUrl = "https://jobs.lever.co/acme/123";
-  const originalApiKey = process.env.GEMINI_API_KEY;
+  const originalGeminiApiKey = process.env.GEMINI_API_KEY;
+  const originalAgnesApiKey = process.env.AGNES_API_KEY;
 
   beforeEach(() => {
+    delete process.env.GEMINI_API_KEY;
     mockSession({ id: userId });
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
     vi.clearAllMocks();
-    if (originalApiKey === undefined) {
+    if (originalGeminiApiKey === undefined) {
       delete process.env.GEMINI_API_KEY;
     } else {
-      process.env.GEMINI_API_KEY = originalApiKey;
+      process.env.GEMINI_API_KEY = originalGeminiApiKey;
+    }
+    if (originalAgnesApiKey === undefined) {
+      delete process.env.AGNES_API_KEY;
+    } else {
+      process.env.AGNES_API_KEY = originalAgnesApiKey;
     }
   });
 
   it("fetches a posting description and scores it against only relevant profile data", async () => {
-    process.env.GEMINI_API_KEY = "test-key";
+    process.env.AGNES_API_KEY = "test-agnes-key";
     await Profile.create({
       userId,
       personalInfo: {
@@ -53,18 +50,31 @@ describe("scoreJobsForCurrentUser", () => {
       certifications: [],
     });
 
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue(
+    const mockFetch = vi
+      .fn()
+      .mockResolvedValueOnce(
         new Response(
           `<script type="application/ld+json">{"@type":"JobPosting","description":"<p>Build and maintain software systems for our customers.</p>"}</script>`,
           { headers: { "content-type": "text/html" } },
         ),
-      ),
-    );
-    mockGenerateContent.mockResolvedValueOnce({
-      text: JSON.stringify({ scores: [{ url: jobUrl, score: 82 }] }),
-    });
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            choices: [
+              {
+                message: {
+                  content: JSON.stringify({
+                    scores: [{ url: jobUrl, score: 82 }],
+                  }),
+                },
+              },
+            ],
+          }),
+          { headers: { "content-type": "application/json" } },
+        ),
+      );
+    vi.stubGlobal("fetch", mockFetch);
 
     const result = await scoreJobsForCurrentUser([{ url: jobUrl }]);
 
@@ -77,14 +87,19 @@ describe("scoreJobsForCurrentUser", () => {
         },
       ],
     });
-    const prompt = String(mockGenerateContent.mock.calls[0][0].contents);
+    const prompt = String(
+      JSON.parse(mockFetch.mock.calls[1][1].body).messages[0].content,
+    );
     expect(prompt).toContain("TypeScript");
     expect(prompt).not.toContain("private@example.com");
     expect(prompt).not.toContain("Private Name");
+    expect(mockFetch.mock.calls[1][0]).toBe(
+      "https://apihub.agnes-ai.com/v1/chat/completions",
+    );
   });
 
   it("returns an explicit unscored result when a full posting description is unavailable", async () => {
-    process.env.GEMINI_API_KEY = "test-key";
+    process.env.AGNES_API_KEY = "test-agnes-key";
     await Profile.create({
       userId,
       skills: ["TypeScript"],
@@ -94,14 +109,12 @@ describe("scoreJobsForCurrentUser", () => {
       certifications: [],
     });
 
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue(
-        new Response("Not HTML", {
-          headers: { "content-type": "text/plain" },
-        }),
-      ),
+    const mockFetch = vi.fn().mockResolvedValue(
+      new Response("Not HTML", {
+        headers: { "content-type": "text/plain" },
+      }),
     );
+    vi.stubGlobal("fetch", mockFetch);
 
     await expect(
       scoreJobsForCurrentUser([{ url: jobUrl }]),
@@ -109,6 +122,6 @@ describe("scoreJobsForCurrentUser", () => {
       error: "Job descriptions are not available for match scoring.",
       descriptions: [{ url: jobUrl, description: null }],
     });
-    expect(mockGenerateContent).not.toHaveBeenCalled();
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 });

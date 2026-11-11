@@ -56,15 +56,15 @@
    BETTER_AUTH_SECRET=your_auth_secret
    BETTER_AUTH_URL=http://localhost:3000
    BRAVE_SEARCH_API_KEY=your_brave_search_api_key
+   AGNES_API_KEY=your_agnes_api_key
    GEMINI_API_KEY=your_gemini_api_key
    # Optional: GEMINI_MODEL=gemini-3.1-flash-lite
-   GROQ_API_KEY=your_groq_api_key
    ```
 
-   `BRAVE_SEARCH_API_KEY` powers job discovery on the Agent page. `GEMINI_API_KEY`
-   enables resume parsing and profile-to-job match scores. If Gemini is unavailable
-   or times out (or no Gemini key is configured), AI requests fall back to Groq using
-   `openai/gpt-oss-120b`; configure `GROQ_API_KEY` to enable this fallback.
+   `BRAVE_SEARCH_API_KEY` powers job discovery on the Agent page. Resume parsing
+   and job match scoring use Gemini first, then fall back to the Agnes API hub
+   (`AGNES_API_KEY`) with the `agnes-2.5-flash` model. Configure both AI keys for
+   automatic failover.
 
 4. (Optional) Seed sample data:
    ```bash

@@ -445,7 +445,7 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
                 AI-assisted resume parsing
               </p>
               <p className="text-blue-800/80 leading-relaxed">
-                Uploading a resume extracts text and uses Google Gemini AI to auto-fill the sections below. Your resume is never used to train public AI models.
+                Uploading a resume extracts text and uses Google Gemini first, with Agnes AI as a fallback, to auto-fill the sections below. Your resume text is sent to the provider used for processing.
               </p>
               <p className="text-blue-800/70">
                 <strong>Prefer manual entry?</strong> Resume upload is completely optional. You can fill out or edit any section directly below without uploading a file.

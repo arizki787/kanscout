@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(arrayBuffer);
 
     const pdf_data = await extractPdfText(buffer);
-    // Upload to Supabase and parse with Gemini concurrently
+    // Upload to Supabase and parse the resume concurrently
     const [storageResult, parsedData] = await Promise.all([
       uploadResumeToStorage(session.user.id, buffer, file.name, file.type),
       parseResumeWithGemini(pdf_data),
