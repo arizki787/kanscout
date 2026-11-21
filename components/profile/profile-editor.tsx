@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useTransition, useCallback } from "react";
+import React, { useState, useRef, useTransition, useCallback, useEffect } from "react";
 import { saveProfile, removeResume } from "@/lib/actions/profile";
 import { Accordion, AccordionItem } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
@@ -114,6 +114,60 @@ export default function ProfileEditor({ initialProfile }: ProfileEditorProps) {
   const [isDirty, setIsDirty] = useState(false);
   const [isPending, startTransition] = useTransition();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!isDirty) return;
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    const handleLinkClick = (event: MouseEvent) => {
+      if (
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) {
+        return;
+      }
+
+      const target = event.target;
+      const link = target instanceof Element ? target.closest("a[href]") : null;
+      if (
+        !(link instanceof HTMLAnchorElement) ||
+        (link.target && link.target !== "_self") ||
+        link.hasAttribute("download")
+      ) {
+        return;
+      }
+
+      const destination = new URL(link.href, window.location.href);
+      if (
+        destination.origin === window.location.origin &&
+        destination.pathname === window.location.pathname &&
+        destination.search === window.location.search
+      ) {
+        return;
+      }
+
+      if (!window.confirm("You have unsaved changes. Leave this page?")) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("click", handleLinkClick, true);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("click", handleLinkClick, true);
+    };
+  }, [isDirty]);
 
   // ── Personal Info ────────────────────────────────────────────────────────
   const updatePersonalInfo = useCallback((field: keyof PersonalInfo, value: string) => {

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import CircularProgressBar from "@/components/profile/profile-completeness";
 import JobListing from "@/components/scout/job-listing";
 import { getSession } from "@/lib/auth/auth";
+import connectDB from "@/lib/db";
 import { initializeUserBoard } from "@/lib/init-user-board";
 import { JobApplication, Profile } from "@/lib/models";
 import { Bot, CheckCircle2, Circle } from "lucide-react";
@@ -11,6 +12,8 @@ import { Suspense } from "react";
 async function AgentPageContent() {
   const session = await getSession();
   if (!session?.user) redirect("/sign-in");
+
+  await connectDB();
 
   const [savedApplications, profile] = await Promise.all([
     JobApplication.find({
@@ -98,12 +101,14 @@ async function AgentPageContent() {
                   </div>
                 ))}
               </div>
-              <Link
-                href="/profile"
-                className="mt-4 flex h-9 items-center justify-center rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/85"
-              >
-                Complete your profile
-              </Link>
+              {profileProgress < 100 && (
+                <Link
+                  href="/profile"
+                  className="mt-4 flex h-9 items-center justify-center rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/85"
+                >
+                  Complete your profile
+                </Link>
+              )}
             </section>
 
             <section className="rounded-xl border bg-card p-5 shadow-sm">
@@ -132,6 +137,7 @@ async function AgentPageContent() {
             initialSavedUrls={savedApplications
               .map((application) => application.jobUrl)
               .filter((url): url is string => Boolean(url))}
+            profileProgress={profileProgress}
           />
         </div>
       </div>

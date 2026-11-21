@@ -36,6 +36,7 @@ import {
 
 interface JobListingProps {
   initialSavedUrls: string[];
+  profileProgress: number;
 }
 
 type ScoreState =
@@ -76,6 +77,7 @@ function isOfficeMatch(job: ScoutedJob) {
 
 export default function JobListing({
   initialSavedUrls,
+  profileProgress,
 }: JobListingProps) {
   const [jobs, setJobs] = useState<ScoutedJob[]>([]);
   const [page, setPage] = useState(1);
@@ -396,14 +398,15 @@ export default function JobListing({
               </p>
             </div>
           </div>
-          {scoreError === "Add profile details to get a match score." && (
-            <Link
-              href="/profile"
-              className="inline-flex shrink-0 items-center justify-center rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-            >
-              Complete Profile
-            </Link>
-          )}
+          {scoreError === "Add profile details to get a match score." &&
+            profileProgress < 100 && (
+              <Link
+                href="/profile"
+                className="inline-flex shrink-0 items-center justify-center rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+              >
+                Complete Profile
+              </Link>
+            )}
         </div>
       )}
 
