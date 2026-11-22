@@ -59,9 +59,17 @@ async function AgentPageContent() {
     <main className="min-h-[calc(100dvh-4rem)] bg-background lg:h-[calc(100dvh-4rem)] lg:min-h-0 lg:overflow-hidden">
       <div className="mx-auto flex min-h-full max-w-7xl flex-col space-y-6 px-4 py-8 sm:px-6 lg:h-full lg:min-h-0 lg:px-8">
         <header className="shrink-0 space-y-1">
-          <h1 className="text-3xl font-semibold tracking-tight">Scout Jobs</h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-3xl font-semibold tracking-tight">
+              Scout Jobs
+            </h1>
+            <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
+              Beta
+            </span>
+          </div>
           <p className="text-sm text-muted-foreground">
             Discover open roles and find the ones that fit your experience.
+            This feature is still being improved.
           </p>
         </header>
 

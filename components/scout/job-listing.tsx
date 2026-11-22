@@ -389,7 +389,7 @@ export default function JobListing({
   }
 
   return (
-    <section className="flex min-h-[70dvh] min-w-0 flex-col gap-4 lg:h-full lg:min-h-0">
+    <section className="flex min-w-0 flex-col gap-4 lg:h-full lg:min-h-0">
       <form
         ref={formRef}
         onSubmit={handleSearch}
@@ -539,7 +539,7 @@ export default function JobListing({
 
       <div
         ref={listRef}
-        className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1"
+        className="max-h-[70dvh] overflow-y-auto lg:max-h-none lg:min-h-0 lg:flex-1 lg:overscroll-contain lg:pr-1"
         role="region"
         aria-label="Job search results"
         tabIndex={0}
