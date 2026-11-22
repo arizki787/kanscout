@@ -1,5 +1,9 @@
 import { cacheLife } from "next/cache";
 import { inferJobSource, type JobSource } from "@/lib/job-source";
+import {
+  SCOUT_MAX_SEARCH_PAGES,
+  SCOUT_SEARCH_RESULTS_PER_SOURCE_BATCH,
+} from "@/lib/scout/pagination";
 
 export interface ScoutedJob {
   id: string;
@@ -16,6 +20,7 @@ export interface ScoutedJob {
 export interface ScoutedJobsResult {
   jobs: ScoutedJob[];
   unavailableSources: string[];
+  hasMore: boolean;
 }
 
 const SEARCH_SOURCE_CONFIG = [
@@ -31,8 +36,9 @@ const SEARCH_SOURCE_CONFIG = [
   domains: readonly string[];
 }>;
 
-const MAX_RESULTS_PER_SOURCE = 20;
 const MAX_JOBS = 40;
+const MAX_JOBS_PER_PAGE =
+  SCOUT_SEARCH_RESULTS_PER_SOURCE_BATCH * SEARCH_SOURCE_CONFIG.length;
 const MAX_DESCRIPTION_LENGTH = 12_000;
 const MAX_HTML_BYTES = 1_000_000;
 
@@ -99,11 +105,17 @@ function companyFromResult(
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-function parseBraveResults(value: unknown) {
-  if (!isRecord(value) || !isRecord(value.web) || !Array.isArray(value.web.results)) {
-    return [];
-  }
-  return value.web.results;
+function parseBraveResponse(value: unknown) {
+  const results =
+    isRecord(value) && isRecord(value.web) && Array.isArray(value.web.results)
+      ? value.web.results
+      : [];
+  const moreResultsAvailable =
+    isRecord(value) &&
+    isRecord(value.query) &&
+    value.query.more_results_available === true;
+
+  return { results, moreResultsAvailable };
 }
 
 export function normalizeBraveResult(
@@ -282,6 +294,7 @@ async function searchSource(
   location: string,
   source: (typeof SEARCH_SOURCE_CONFIG)[number],
   apiKey: string,
+  page: number,
 ) {
   const searchQuery = [
     source.domains.length === 1
@@ -294,7 +307,11 @@ async function searchSource(
     .join(" ");
   const endpoint = new URL("https://api.search.brave.com/res/v1/web/search");
   endpoint.searchParams.set("q", searchQuery);
-  endpoint.searchParams.set("count", String(MAX_RESULTS_PER_SOURCE));
+  endpoint.searchParams.set(
+    "count",
+    String(SCOUT_SEARCH_RESULTS_PER_SOURCE_BATCH),
+  );
+  endpoint.searchParams.set("offset", String(page));
   endpoint.searchParams.set("freshness", "pm");
 
   const response = await fetch(endpoint, {
@@ -308,20 +325,32 @@ async function searchSource(
     throw new Error(`Brave Search returned HTTP ${response.status}.`);
   }
 
-  const results: ScoutedJob[] = [];
-  for (const item of parseBraveResults(await response.json())) {
+  const { results: rawResults, moreResultsAvailable } = parseBraveResponse(
+    await response.json(),
+  );
+  const jobs: ScoutedJob[] = [];
+  for (const item of rawResults) {
     const job = normalizeBraveResult(item, source.source);
-    if (job) results.push(job);
+    if (job) jobs.push(job);
   }
-  return results;
+  return { jobs, moreResultsAvailable };
 }
 
 export async function searchScoutedJobs(
   rawQuery: string,
   rawLocation: string,
+  page = 0,
 ): Promise<ScoutedJobsResult> {
   "use cache";
   cacheLife("minutes");
+
+  if (
+    !Number.isInteger(page) ||
+    page < 0 ||
+    page >= SCOUT_MAX_SEARCH_PAGES
+  ) {
+    throw new Error("Invalid job search page.");
+  }
 
   const apiKey = process.env.BRAVE_SEARCH_API_KEY;
   if (!apiKey) {
@@ -335,29 +364,33 @@ export async function searchScoutedJobs(
       try {
         return {
           source,
-          jobs: await searchSource(query, location, source, apiKey),
+          result: await searchSource(query, location, source, apiKey, page),
         };
       } catch (error) {
         console.error(
           `[Agent Jobs] ${source.source} search failed:`,
           error,
         );
-        return { source, jobs: null };
+        return { source, result: null };
       }
     }),
   );
 
   const unavailableSources = responses
-    .filter((response) => response.jobs === null)
+    .filter((response) => response.result === null)
     .map((response) => response.source.source);
-  const jobsBySource = responses.map((response) => response.jobs ?? []);
+  const jobsBySource = responses.map((response) => response.result?.jobs ?? []);
   const candidates: ScoutedJob[] = [];
-  for (let index = 0; candidates.length < MAX_JOBS; index += 1) {
+  const maxJobsThisPage = Math.min(
+    MAX_JOBS_PER_PAGE,
+    MAX_JOBS - page * MAX_JOBS_PER_PAGE,
+  );
+  for (let index = 0; candidates.length < maxJobsThisPage; index += 1) {
     const round = jobsBySource
       .map((sourceJobs) => sourceJobs[index])
       .filter((job): job is ScoutedJob => Boolean(job));
     if (round.length === 0) break;
-    candidates.push(...round.slice(0, MAX_JOBS - candidates.length));
+    candidates.push(...round.slice(0, maxJobsThisPage - candidates.length));
   }
 
   if (candidates.length === 0 && unavailableSources.length > 0) {
@@ -370,9 +403,17 @@ export async function searchScoutedJobs(
   }
 
   const jobs = [...unique.values()].slice(0, MAX_JOBS);
+  // Brave's `query.more_results_available` is unreliable for site-scoped
+  // queries: it reports false even when later offsets still return results.
+  // Keep paging while this page produced jobs, bounded by the page cap.
+  const hasMore =
+    page < SCOUT_MAX_SEARCH_PAGES - 1 &&
+    jobs.length > 0 &&
+    page * MAX_JOBS_PER_PAGE + jobs.length < MAX_JOBS;
 
   return {
     jobs,
     unavailableSources,
+    hasMore,
   };
 }

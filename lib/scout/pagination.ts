@@ -1,10 +1,5 @@
-export const SCOUT_JOBS_PER_PAGE = 10;
-
-export function getScoutedJobPage<T>(jobs: readonly T[], page: number): T[] {
-  const safePage = Math.max(1, Math.floor(page));
-  const start = (safePage - 1) * SCOUT_JOBS_PER_PAGE;
-  return jobs.slice(start, start + SCOUT_JOBS_PER_PAGE);
-}
+export const SCOUT_SEARCH_RESULTS_PER_SOURCE_BATCH = 3;
+export const SCOUT_MAX_SEARCH_PAGES = 4;
 
 export function formatJobPostedAt(
   postedAt: string | null,

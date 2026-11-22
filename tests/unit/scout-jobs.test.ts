@@ -7,7 +7,8 @@ import {
 } from "@/lib/scout/jobs";
 import {
   formatJobPostedAt,
-  getScoutedJobPage,
+  SCOUT_MAX_SEARCH_PAGES,
+  SCOUT_SEARCH_RESULTS_PER_SOURCE_BATCH,
 } from "@/lib/scout/pagination";
 
 const originalBraveApiKey = process.env.BRAVE_SEARCH_API_KEY;
@@ -21,19 +22,10 @@ afterEach(() => {
   }
 });
 
-describe("job listing pagination", () => {
-  it("shows at most 10 jobs per page and returns the remaining jobs on the last page", () => {
-    const jobs = Array.from({ length: 25 }, (_, index) => `job-${index + 1}`);
-
-    expect(getScoutedJobPage(jobs, 1)).toHaveLength(10);
-    expect(getScoutedJobPage(jobs, 2)).toHaveLength(10);
-    expect(getScoutedJobPage(jobs, 3)).toEqual([
-      "job-21",
-      "job-22",
-      "job-23",
-      "job-24",
-      "job-25",
-    ]);
+describe("job search pagination", () => {
+  it("limits pagination to a bounded number of provider batches", () => {
+    expect(SCOUT_SEARCH_RESULTS_PER_SOURCE_BATCH).toBe(3);
+    expect(SCOUT_MAX_SEARCH_PAGES).toBe(4);
   });
 });
 
@@ -167,9 +159,15 @@ describe("searchScoutedJobs", () => {
               wellfound: "wellfound.com",
             }[source as keyof typeof postingUrls]}`),
           );
-          if (!entry) return Response.json({ web: { results: [] } });
+          if (!entry) {
+            return Response.json({
+              query: { more_results_available: false },
+              web: { results: [] },
+            });
+          }
           const [source, postingUrl] = entry;
           return Response.json({
+            query: { more_results_available: false },
             web: {
               results: [
                 {
@@ -199,6 +197,9 @@ describe("searchScoutedJobs", () => {
     expect(result.unavailableSources).toEqual([]);
     expect(new Set(result.jobs.map((job) => job.source)).size).toBe(4);
     expect(result.jobs.every((job) => job.description === null)).toBe(true);
+    // Brave reports `more_results_available: false` here, but later offsets
+    // can still return results, so a non-empty page must keep paging.
+    expect(result.hasMore).toBe(true);
     expect(mockFetch).toHaveBeenCalledTimes(4);
 
     const braveHeaders = new Headers(mockFetch.mock.calls[0][1]?.headers);
@@ -211,5 +212,102 @@ describe("searchScoutedJobs", () => {
     expect(braveUrl.searchParams.get("q")).toContain("React engineer");
     expect(braveUrl.searchParams.get("q")).toContain("Jakarta");
     expect(braveUrl.searchParams.get("freshness")).toBe("pm");
+  });
+
+  it("requests and returns the next balanced batch of provider results", async () => {
+    process.env.BRAVE_SEARCH_API_KEY = "test-key";
+    const sourceDetails = [
+      ["greenhouse", "boards.greenhouse.io", "acme/jobs"],
+      ["lever", "jobs.lever.co", "acme"],
+      ["workable", "apply.workable.com", "acme/j"],
+      ["wellfound", "wellfound.com", "jobs"],
+    ] as const;
+    const mockFetch = vi.fn(
+      async (input: string | URL | Request) => {
+        const url = new URL(input instanceof Request ? input.url : input.toString());
+        const source = sourceDetails.find(([, domain]) =>
+          url.searchParams.get("q")?.includes(`site:${domain}`),
+        );
+        if (!source) return Response.json({ web: { results: [] } });
+        const [sourceName, domain, path] = source;
+        const sourceResults = Array.from(
+          { length: SCOUT_SEARCH_RESULTS_PER_SOURCE_BATCH },
+          (_, index) =>
+            sourceName === "greenhouse" && index > 0
+              ? { title: null, url: null, description: null }
+              : {
+                  title: `Engineer ${index} at ${sourceName}`,
+                  url: `https://${domain}/${path}/${url.searchParams.get("offset")}-${index}`,
+                  description: "Search result summary",
+                },
+        );
+        return Response.json({
+          query: { more_results_available: true },
+          web: { results: sourceResults },
+        });
+      },
+    );
+    vi.stubGlobal("fetch", mockFetch);
+
+    const result = await searchScoutedJobs("React engineer", "Jakarta", 1);
+
+    expect(result.jobs).toHaveLength(10);
+    expect(new Set(result.jobs.map((job) => job.source)).size).toBe(4);
+    expect(result.hasMore).toBe(true);
+    expect(mockFetch).toHaveBeenCalledTimes(4);
+    for (const [input] of mockFetch.mock.calls) {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      expect(url.searchParams.get("count")).toBe(
+        String(SCOUT_SEARCH_RESULTS_PER_SOURCE_BATCH),
+      );
+      expect(url.searchParams.get("offset")).toBe("1");
+    }
+
+    const finalResult = await searchScoutedJobs("React engineer", "Jakarta", 3);
+
+    expect(finalResult.jobs).toHaveLength(4);
+    expect(finalResult.hasMore).toBe(false);
+    expect(mockFetch).toHaveBeenCalledTimes(8);
+    for (const [input] of mockFetch.mock.calls.slice(4)) {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      expect(url.searchParams.get("offset")).toBe("3");
+    }
+  });
+
+  it("keeps paging when Brave reports no more results but a page has jobs", async () => {
+    process.env.BRAVE_SEARCH_API_KEY = "test-key";
+    const mockFetch = vi.fn(async (input: string | URL | Request) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      const offset = Number(url.searchParams.get("offset"));
+      // Real Brave responses for site-scoped queries always report
+      // more_results_available: false, even when offset 1 has results.
+      const results =
+        offset < 2
+          ? [
+              {
+                title: "Engineer at Acme",
+                url: `https://boards.greenhouse.io/acme/jobs/${offset}`,
+                description: "Search result summary",
+              },
+            ]
+          : [];
+      return Response.json({
+        query: { more_results_available: false },
+        web: { results },
+      });
+    });
+    vi.stubGlobal("fetch", mockFetch);
+
+    const first = await searchScoutedJobs("React engineer", "Jakarta", 0);
+    expect(first.jobs).toHaveLength(1);
+    expect(first.hasMore).toBe(true);
+
+    const second = await searchScoutedJobs("React engineer", "Jakarta", 1);
+    expect(second.jobs).toHaveLength(1);
+    expect(second.hasMore).toBe(true);
+
+    const third = await searchScoutedJobs("React engineer", "Jakarta", 2);
+    expect(third.jobs).toHaveLength(0);
+    expect(third.hasMore).toBe(false);
   });
 });

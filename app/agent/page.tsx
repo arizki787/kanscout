@@ -57,17 +57,17 @@ async function AgentPageContent() {
   );
 
   return (
-    <main className="min-h-screen bg-background">
-      <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-        <header className="space-y-1">
+    <main className="min-h-[calc(100dvh-4rem)] bg-background lg:h-[calc(100dvh-4rem)] lg:min-h-0 lg:overflow-hidden">
+      <div className="mx-auto flex min-h-full max-w-7xl flex-col space-y-6 px-4 py-8 sm:px-6 lg:h-full lg:min-h-0 lg:px-8">
+        <header className="shrink-0 space-y-1">
           <h1 className="text-3xl font-semibold tracking-tight">Scout Jobs</h1>
           <p className="text-sm text-muted-foreground">
             Discover open roles and find the ones that fit your experience.
           </p>
         </header>
 
-        <div className="grid gap-6 lg:grid-cols-[270px_minmax(0,1fr)]">
-          <aside className="space-y-4">
+        <div className="grid gap-6 lg:min-h-0 lg:flex-1 lg:grid-cols-[270px_minmax(0,1fr)]">
+          <aside className="space-y-4 lg:min-h-0 lg:overflow-y-auto">
             <section className="rounded-xl border bg-card p-5 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-sm font-semibold">Profile completeness</h2>

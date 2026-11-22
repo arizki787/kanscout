@@ -1,5 +1,6 @@
 import { getSession } from "@/lib/auth/auth";
 import { searchScoutedJobs } from "@/lib/scout/jobs";
+import { SCOUT_MAX_SEARCH_PAGES } from "@/lib/scout/pagination";
 
 export async function GET(request: Request) {
   const session = await getSession();
@@ -10,15 +11,28 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("q")?.trim() ?? "";
   const location = searchParams.get("location")?.trim() ?? "";
+  const rawPage = searchParams.get("page") ?? "0";
+  const page = Number(rawPage);
   if (query.length > 120 || location.length > 80) {
     return Response.json(
       { error: "Search text or location is too long." },
       { status: 400 },
     );
   }
+  if (
+    !/^\d+$/.test(rawPage) ||
+    !Number.isSafeInteger(page) ||
+    page < 0 ||
+    page >= SCOUT_MAX_SEARCH_PAGES
+  ) {
+    return Response.json(
+      { error: "Invalid job search page." },
+      { status: 400 },
+    );
+  }
 
   try {
-    return Response.json(await searchScoutedJobs(query, location));
+    return Response.json(await searchScoutedJobs(query, location, page));
   } catch (error) {
     console.error("[Agent Jobs] Search request failed:", error);
     const message =
