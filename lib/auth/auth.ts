@@ -62,7 +62,13 @@ export const auth = betterAuth({
     database: mongodbAdapter(db, {
         client,
     }),
-    baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL!,
+    baseURL: process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_BETTER_AUTH_URL!,
+    trustedOrigins: [
+        "https://kanscout.com",
+        "https://www.kanscout.com",
+        "https://kanscout.adxtinsight.site",
+        "http://localhost:3000",
+    ],
     session: {
         cookieCache: {
             enabled: true,
