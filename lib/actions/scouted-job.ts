@@ -3,8 +3,7 @@
 import { getSession } from "@/lib/auth/auth";
 import connectDB from "@/lib/db";
 import { createJobApplication } from "@/lib/actions/job-application";
-import { initializeUserBoard } from "@/lib/init-user-board";
-import { Board, Column, JobApplication } from "@/lib/models";
+import { JobApplication } from "@/lib/models";
 import { inferJobSource, type JobSource } from "@/lib/job-source";
 
 export interface ScoutedJobInput {
@@ -57,24 +56,12 @@ export async function addScoutedJobToWishlist(job: ScoutedJobInput) {
   }
 
   await connectDB();
-  const board = await initializeUserBoard(session.user.id);
-  const boardForUser = await Board.findOne({
-    _id: board._id,
-    userId: session.user.id,
-  });
-  if (!boardForUser) return { error: "Job board not found." };
-
-  const wishlist = await Column.findOne({
-    boardId: boardForUser._id,
-    name: /^wish list$/i,
-  });
-  if (!wishlist) return { error: "Wish List column not found." };
 
   const existing = await JobApplication.findOne({
     userId: session.user.id,
-    boardId: boardForUser._id,
     jobUrl: job.url,
   }).lean();
+
   if (existing) {
     return {
       data: JSON.parse(JSON.stringify(existing)),
@@ -88,10 +75,10 @@ export async function addScoutedJobToWishlist(job: ScoutedJobInput) {
     location: job.location.trim() || "See listing",
     jobUrl: job.url,
     source: job.source,
-    boardId: boardForUser._id.toString(),
-    columnId: wishlist._id.toString(),
+    status: "wishlist",
     description: job.description ?? undefined,
   });
+
   if ("error" in result) return result;
 
   return { data: result.data, alreadySaved: false };

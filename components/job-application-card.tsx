@@ -1,6 +1,6 @@
 "use client";
 
-import { Column, JobApplication } from "@/lib/models/models.types";
+import { Column, JobApplication, JobStatus } from "@/lib/models/models.types";
 import { Card, CardContent } from "./ui/card";
 import { Info, ExternalLink, MoreVertical, Trash2 } from "lucide-react";
 import {
@@ -49,8 +49,7 @@ export default function JobApplicationCard({
     description: job.description || "",
   });
 
-  const currentColumn = columns.find((c) => c._id === job.columnId);
-  const isAppliedColumn = currentColumn?.name?.toLowerCase() === "applied";
+  const isAppliedColumn = job.status === "applied";
   const displayAppliedDate =
     job.appliedDate ||
     (isAppliedColumn ? job.createdAt || new Date() : null);
@@ -90,10 +89,10 @@ export default function JobApplicationCard({
     }  
   }
 
-  async function handleMove(newColumnId: string) {
+  async function handleMove(newStatus: JobStatus) {
     try {
       await updateJobApplication(job._id, {
-        columnId: newColumnId,
+        status: newStatus,
       });
     } catch (err) {
       console.error("Failed to move job application: ", err);
@@ -178,12 +177,12 @@ export default function JobApplicationCard({
                   {columns.length > 1 && (
                     <>
                       {columns
-                        .filter((c) => c._id !== job.columnId)
+                        .filter((c) => c.status !== job.status)
                         .map((column, key) => (
                           <DropdownMenuItem
                             key={key}
                             className="text-[0.7rem]"
-                            onClick={() => handleMove(column._id)}
+                            onClick={() => handleMove(column.status)}
                           >
                             Move to {column.name}
                           </DropdownMenuItem>

@@ -2,25 +2,25 @@
 
 import { getSession } from "../auth/auth";
 import connectDB from "../db";
-import { Board, Column, JobApplication } from "../models";
+import { JobApplication } from "../models";
 import { revalidatePath, updateTag } from "next/cache";
 import { inferJobSource, isJobSource, type JobSource } from "../job-source";
+import { isJobStatus, type JobStatus } from "../models/models.types";
 
-interface JobApplicationData {
+export interface CreateJobApplicationData {
   company: string;
   position: string;
-  location: string;
+  location?: string;
   notes?: string;
   salary?: string;
   jobUrl?: string;
   source?: JobSource;
-  columnId: string;
-  boardId: string;
+  status?: JobStatus;
   tags?: string[];
   description?: string;
 }
 
-export async function createJobApplication(data: JobApplicationData) {
+export async function createJobApplication(data: CreateJobApplicationData) {
   await connectDB();
 
   const session = await getSession();
@@ -37,13 +37,12 @@ export async function createJobApplication(data: JobApplicationData) {
     salary,
     jobUrl,
     source,
-    columnId,
-    boardId,
+    status = "wishlist",
     tags,
     description,
   } = data;
 
-  if (!company || !position || !columnId || !boardId) {
+  if (!company || !position) {
     return { error: "Missing required fields" };
   }
 
@@ -51,31 +50,11 @@ export async function createJobApplication(data: JobApplicationData) {
     return { error: "Invalid job source" };
   }
 
-  const board = await Board.findOne({
-    _id: boardId,
-    userId: session.user.id,
-  });
-
-  if (!board) {
-    return { error: "Board not found" };
+  if (!isJobStatus(status)) {
+    return { error: "Invalid job status" };
   }
 
-  const column = await Column.findOne({
-    _id: columnId,
-    boardId: boardId,
-  });
-
-  if (!column) {
-    return { error: "Column not found" };
-  }
-
-  const maxOrder = (await JobApplication.findOne({ columnId })
-    .sort({ order: -1 })
-    .select("order")
-    .lean()) as { order: number } | null;
-
-  const status = column.name.toLowerCase().replace(/\s+/g, "-");
-  const isApplied = column.name.toLowerCase() === "applied";
+  const isApplied = status === "applied";
 
   const jobApplication = await JobApplication.create({
     company,
@@ -85,18 +64,13 @@ export async function createJobApplication(data: JobApplicationData) {
     salary,
     jobUrl,
     source: isJobSource(source) ? source : inferJobSource(jobUrl),
-    columnId,
-    boardId,
     userId: session.user.id,
     tags: tags || [],
     description,
     status,
     appliedDate: isApplied ? new Date() : undefined,
-    order: maxOrder ? maxOrder.order + 100 : 0,
-  });
-
-  await Column.findByIdAndUpdate(columnId, {
-    $push: { jobApplications: jobApplication._id },
+    columnEnteredAt: new Date(),
+    order: 0,
   });
 
   updateTag(`board-${session.user.id}`);
@@ -105,24 +79,25 @@ export async function createJobApplication(data: JobApplicationData) {
   return { data: JSON.parse(JSON.stringify(jobApplication)) };
 }
 
+export interface UpdateJobApplicationData {
+  company?: string;
+  position?: string;
+  location?: string;
+  notes?: string;
+  salary?: string;
+  jobUrl?: string;
+  source?: JobSource;
+  status?: JobStatus;
+  order?: number;
+  tags?: string[];
+  description?: string;
+  appliedDate?: Date | string | null;
+  columnEnteredAt?: Date | string | null;
+}
+
 export async function updateJobApplication(
   id: string,
-  updates: {
-    company?: string;
-    position?: string;
-    location?: string;
-    notes?: string;
-    salary?: string;
-    jobUrl?: string;
-    source?: JobSource;
-    columnId?: string;
-    order?: number;
-    tags?: string[];
-    description?: string;
-    status?: string;
-    appliedDate?: Date | string | null;
-    columnEnteredAt?: Date | string | null;
-  },
+  updates: UpdateJobApplicationData
 ) {
   await connectDB();
 
@@ -150,24 +125,15 @@ export async function updateJobApplication(
     return { error: "Invalid job source" };
   }
 
-  const { columnId, order, ...otherUpdates } = updates;
+  if (
+    "status" in updates &&
+    updates.status !== undefined &&
+    !isJobStatus(updates.status)
+  ) {
+    return { error: "Invalid job status" };
+  }
 
-  const updatesToApply: Partial<{
-    company: string;
-    position: string;
-    location: string;
-    notes: string;
-    salary: string;
-    jobUrl: string;
-    source: JobSource;
-    columnId: string;
-    order: number;
-    tags: string[];
-    description: string;
-    status: string;
-    appliedDate: Date | string | null;
-    columnEnteredAt: Date | string | null;
-  }> = { ...otherUpdates };
+  const updatesToApply: Record<string, unknown> = { ...updates };
 
   if ("source" in updates) {
     updatesToApply.source = isJobSource(updates.source)
@@ -177,111 +143,19 @@ export async function updateJobApplication(
     updatesToApply.source = inferJobSource(updates.jobUrl);
   }
 
-  const currentColumnId = jobApplication.columnId.toString();
-  const newColumnId = columnId?.toString();
-
-  const isMovingTodifferentColumn =
-    newColumnId && newColumnId !== currentColumnId;
-
-  if (isMovingTodifferentColumn) {
-    const targetColumn = await Column.findOne({
-      _id: newColumnId,
-      boardId: jobApplication.boardId,
-    });
-
-    if (!targetColumn) {
-      return { error: "Target column not found" };
-    }
-
-    await Column.findByIdAndUpdate(currentColumnId, {
-      $pull: { jobApplications: id },
-    });
-
-    const jobsInTargetColumn = await JobApplication.find({
-      columnId: newColumnId,
-      _id: { $ne: id },
-    })
-      .sort({ order: 1 })
-      .lean();
-
-    let newOrderValue: number;
-
-    if (order !== undefined && order !== null) {
-      newOrderValue = order * 100;
-
-      const jobsThatNeedTOShift = jobsInTargetColumn.slice(order);
-
-      for (const job of jobsThatNeedTOShift) {
-        await JobApplication.findByIdAndUpdate(job._id, {
-          $set: { order: job.order + 100 },
-        });
-      }
-    } else {
-      if (jobsInTargetColumn.length > 0) {
-        const lastJobOrder =
-          jobsInTargetColumn[jobsInTargetColumn.length - 1].order || 0;
-        newOrderValue = lastJobOrder + 100;
-      } else {
-        newOrderValue = 0;
-      }
-    }
-
-    updatesToApply.columnId = newColumnId;
-    updatesToApply.order = newOrderValue;
+  // Handle status transitions
+  if (updates.status && updates.status !== jobApplication.status) {
+    updatesToApply.status = updates.status;
     updatesToApply.columnEnteredAt = new Date();
 
-    // Automatically sync status with target column if not explicitly overridden
-    if (!updatesToApply.status) {
-      updatesToApply.status = targetColumn.name.toLowerCase().replace(/\s+/g, "-");
-    }
-
-    // Set appliedDate if moved into "Applied" column and not yet set
-    const isTargetApplied = targetColumn.name.toLowerCase() === "applied";
-    if (isTargetApplied && !jobApplication.appliedDate && !updatesToApply.appliedDate) {
+    // Set appliedDate if moved into "applied" status and not yet set
+    if (
+      updates.status === "applied" &&
+      !jobApplication.appliedDate &&
+      !updates.appliedDate
+    ) {
       updatesToApply.appliedDate = new Date();
     }
-
-    await Column.findByIdAndUpdate(newColumnId, {
-      $push: { jobApplications: id },
-    });
-  } else if (order !== undefined && order !== null) {
-    const otherJobsInColumn = await JobApplication.find({
-      columnId: currentColumnId,
-      _id: { $ne: id },
-    })
-      .sort({ order: 1 })
-      .lean();
-
-    const currentJobOrder = jobApplication.order || 0;
-    const currentPositionIndex = otherJobsInColumn.findIndex(
-      (job) => job.order > currentJobOrder,
-    );
-    const oldPositionIndex =
-      currentPositionIndex === -1
-        ? otherJobsInColumn.length
-        : currentPositionIndex;
-
-    const newOrderValue = order * 100;
-
-    if (order < oldPositionIndex) {
-      const jobsToShiftDown = otherJobsInColumn.slice(order, oldPositionIndex);
-
-      for (const job of jobsToShiftDown) {
-        await JobApplication.findByIdAndUpdate(job._id, {
-          $set: { order: job.order + 100 },
-        });
-      }
-    } else if (order > oldPositionIndex) {
-      const jobsToShiftUp = otherJobsInColumn.slice(oldPositionIndex, order);
-      for (const job of jobsToShiftUp) {
-        const newOrder = Math.max(0, job.order - 100);
-        await JobApplication.findByIdAndUpdate(job._id, {
-          $set: { order: newOrder },
-        });
-      }
-    }
-
-    updatesToApply.order = newOrderValue;
   }
 
   const updated = await JobApplication.findByIdAndUpdate(id, updatesToApply, {
@@ -299,7 +173,7 @@ export async function deleteJobApplication(id: string) {
   const session = await getSession();
 
   if (!session?.user) {
-    return { error: "Unauthorized " };
+    return { error: "Unauthorized" };
   }
 
   const jobApplication = await JobApplication.findById(id);
@@ -311,10 +185,6 @@ export async function deleteJobApplication(id: string) {
   if (jobApplication.userId !== session.user.id) {
     return { error: "Unauthorized" };
   }
-
-  await Column.findByIdAndUpdate(jobApplication.columnId, {
-    $pull: { jobApplications: id },
-  });
 
   await JobApplication.deleteOne({ _id: id });
 

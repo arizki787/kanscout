@@ -16,7 +16,7 @@ if (!process.env.MONGODB_URI) {
 
 import connectDB from "../lib/db";
 import "@/lib/models";
-import { Board, Column, JobApplication } from "@/lib/models";
+import { JobApplication, Profile } from "@/lib/models";
 
 // Can be passed via CLI: `npx tsx scripts/cleanup-user.ts <userId or email>`
 const TARGET_INPUT = process.argv[2] || "6a68eb17415c158bd3baaf7f";
@@ -52,32 +52,19 @@ async function cleanup() {
     }
 
     // ============================================================
-    // 1. Find user's board
-    // ============================================================
-    const board = await Board.findOne({ userId });
-
-    if (board) {
-      console.log(`✅ Board found: ${board.name} (${board._id})`);
-
-      // 2. Delete all columns belonging to the board
-      const columnsResult = await Column.deleteMany({ boardId: board._id });
-      console.log(`📁 Deleted ${columnsResult.deletedCount} columns`);
-
-      // 3. Delete board
-      const deletedBoard = await Board.deleteOne({ _id: board._id });
-      console.log(`📋 Deleted ${deletedBoard.deletedCount} board(s)`);
-    } else {
-      console.log("ℹ️ No board found for this user ID");
-    }
-
-    // ============================================================
-    // 4. Delete job applications belonging to this user
+    // 1. Delete job applications belonging to this user
     // ============================================================
     const jobsResult = await JobApplication.deleteMany({ userId });
     console.log(`💼 Deleted ${jobsResult.deletedCount} job applications`);
 
     // ============================================================
-    // 5. Delete Better Auth user, account, and session records
+    // 2. Delete profile
+    // ============================================================
+    const profileResult = await Profile.deleteMany({ userId });
+    console.log(`📄 Deleted ${profileResult.deletedCount} profile(s)`);
+
+    // ============================================================
+    // 3. Delete Better Auth user, account, and session records
     // ============================================================
     if (db) {
       const userDeleteQueries = [

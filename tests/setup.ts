@@ -1,5 +1,7 @@
 import { vi, afterEach } from "vitest";
 
+process.env.MONGOMS_MD5_CHECK = "0";
+
 // Mock next/cache globally
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import CircularProgressBar from "@/components/profile/profile-completeness";
 import JobListing from "@/components/scout/job-listing";
 import { getSession } from "@/lib/auth/auth";
-import { initializeUserBoard } from "@/lib/init-user-board";
+import connectDB from "@/lib/db";
 import { JobApplication, Profile } from "@/lib/models";
 import { Bot, CheckCircle2, Circle } from "lucide-react";
 import { Suspense } from "react";
@@ -11,6 +11,8 @@ import { Suspense } from "react";
 async function AgentPageContent() {
   const session = await getSession();
   if (!session?.user) redirect("/sign-in");
+
+  await connectDB();
 
   const [savedApplications, profile] = await Promise.all([
     JobApplication.find({
@@ -54,17 +56,25 @@ async function AgentPageContent() {
   );
 
   return (
-    <main className="min-h-screen bg-background">
-      <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-        <header className="space-y-1">
-          <h1 className="text-3xl font-semibold tracking-tight">Scout Jobs</h1>
+    <main className="min-h-[calc(100dvh-4rem)] bg-background lg:h-[calc(100dvh-4rem)] lg:min-h-0 lg:overflow-hidden">
+      <div className="mx-auto flex min-h-full max-w-7xl flex-col space-y-6 px-4 py-8 sm:px-6 lg:h-full lg:min-h-0 lg:px-8">
+        <header className="shrink-0 space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-3xl font-semibold tracking-tight">
+              Scout Jobs
+            </h1>
+            <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
+              Beta
+            </span>
+          </div>
           <p className="text-sm text-muted-foreground">
             Discover open roles and find the ones that fit your experience.
+            This feature is still being improved.
           </p>
         </header>
 
-        <div className="grid gap-6 lg:grid-cols-[270px_minmax(0,1fr)]">
-          <aside className="space-y-4">
+        <div className="grid gap-6 lg:min-h-0 lg:flex-1 lg:grid-cols-[270px_minmax(0,1fr)]">
+          <aside className="space-y-4 lg:min-h-0 lg:overflow-y-auto">
             <section className="rounded-xl border bg-card p-5 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-sm font-semibold">Profile completeness</h2>
@@ -98,12 +108,14 @@ async function AgentPageContent() {
                   </div>
                 ))}
               </div>
-              <Link
-                href="/profile"
-                className="mt-4 flex h-9 items-center justify-center rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/85"
-              >
-                Complete your profile
-              </Link>
+              {profileProgress < 100 && (
+                <Link
+                  href="/profile"
+                  className="mt-4 flex h-9 items-center justify-center rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/85"
+                >
+                  Complete your profile
+                </Link>
+              )}
             </section>
 
             <section className="rounded-xl border bg-card p-5 shadow-sm">
@@ -132,6 +144,7 @@ async function AgentPageContent() {
             initialSavedUrls={savedApplications
               .map((application) => application.jobUrl)
               .filter((url): url is string => Boolean(url))}
+            profileProgress={profileProgress}
           />
         </div>
       </div>
