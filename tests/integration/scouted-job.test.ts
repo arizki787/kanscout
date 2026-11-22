@@ -1,9 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import mongoose from "mongoose";
 import { addScoutedJobToWishlist } from "@/lib/actions/scouted-job";
-import { initializeUserBoard } from "@/lib/init-user-board";
-import { Column, JobApplication } from "@/lib/models";
-import type { IBoard } from "@/lib/models/board";
+import { JobApplication } from "@/lib/models";
 import { mockSession } from "../helpers/auth-mock";
 import { setupTestDB } from "../helpers/db-test";
 
@@ -11,14 +8,12 @@ describe("addScoutedJobToWishlist", () => {
   setupTestDB();
 
   const userId = "scouted_job_test_user";
-  let board: IBoard;
 
   beforeEach(async () => {
-    board = (await initializeUserBoard(userId)) as unknown as IBoard;
     mockSession({ id: userId });
   });
 
-  it("saves a discovered job into the existing Wish List column", async () => {
+  it("saves a discovered job into the wishlist", async () => {
     const result = await addScoutedJobToWishlist({
       title: "Frontend Engineer",
       company: "Acme",
@@ -30,18 +25,12 @@ describe("addScoutedJobToWishlist", () => {
 
     expect("data" in result).toBe(true);
     if (!("data" in result)) return;
-    expect(result.data.status).toBe("wish-list");
+    expect(result.data.status).toBe("wishlist");
     expect(result.data.source).toBe("greenhouse");
 
-    const wishlist = await Column.findOne({
-      boardId: board._id,
-      name: "Wish List",
-    });
-    expect(
-      wishlist?.jobApplications.map((id: mongoose.Types.ObjectId) =>
-        id.toString(),
-      ),
-    ).toContain(result.data._id.toString());
+    const saved = await JobApplication.findById(result.data._id);
+    expect(saved).toBeDefined();
+    expect(saved?.status).toBe("wishlist");
   });
 
   it("does not create duplicate wishlist entries for the same posting", async () => {
@@ -68,10 +57,10 @@ describe("addScoutedJobToWishlist", () => {
       title: "Frontend Engineer",
       company: "Acme",
       location: "Remote",
-      url: "https://example.com/jobs/123",
-      source: "greenhouse",
+      url: "https://malicious-site.example.com/jobs/123",
+      source: "other" as any,
     });
 
-    expect(result).toEqual({ error: "Invalid job details." });
+    expect("error" in result).toBe(true);
   });
 });

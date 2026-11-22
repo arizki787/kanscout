@@ -1,13 +1,12 @@
 import mongoose, { Schema, Document } from "mongoose";
 import { JOB_SOURCES, type JobSource } from "../job-source";
+import { JOB_STATUSES, type JobStatus } from "./models.types";
 
 export interface IJobApplication extends Document {
     company: string;
     position: string;
     location?: string;
-    status: string;
-    columnId: mongoose.Types.ObjectId;
-    boardId: mongoose.Types.ObjectId;
+    status: JobStatus;
     userId: string;
     order: number;
     notes?: string;
@@ -17,7 +16,7 @@ export interface IJobApplication extends Document {
     appliedDate?: Date;
     tags?: string[];
     description?: string;
-    columnEnteredAt: Date; // <-- new
+    columnEnteredAt: Date;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -37,19 +36,9 @@ const JobApplicationSchema = new Schema<IJobApplication>(
         },
         status: {
             type: String,
+            enum: JOB_STATUSES,
             required: true,
-            default: 'applied',
-        },
-        columnId: {
-            type: Schema.Types.ObjectId,
-            ref: 'Column',
-            required: true,
-            index: true,
-        },
-        boardId: {
-            type: Schema.Types.ObjectId,
-            ref: "Board",
-            required: true,
+            default: "wishlist",
             index: true,
         },
         userId: {
@@ -88,14 +77,16 @@ const JobApplicationSchema = new Schema<IJobApplication>(
         },
         columnEnteredAt: {
             type: Date,
-        default: Date.now,
+            default: Date.now,
         },
     },
     {
         timestamps: true,
     }
-
 );
 
+JobApplicationSchema.index({ userId: 1, status: 1 });
+JobApplicationSchema.index({ userId: 1, createdAt: -1 });
+
 export default mongoose.models.JobApplication ||
-    mongoose.model<IJobApplication>('JobApplication', JobApplicationSchema)
+    mongoose.model<IJobApplication>("JobApplication", JobApplicationSchema);

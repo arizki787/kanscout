@@ -11,7 +11,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "seed:jobs": "tsx --env-file=.env.local scripts/seed.ts",
-    "migrate:ghosted": "tsx --env-file=.env.local scripts/migrate-ghosted.ts",
+    "migrate:single-collection": "tsx --env-file=.env.local scripts/migrate-to-single-collection.ts",
     "cleanup:user": "tsx --env-file=.env.local scripts/cleanup-user.ts"
   },
   "dependencies": {

@@ -4,7 +4,6 @@ import CircularProgressBar from "@/components/profile/profile-completeness";
 import JobListing from "@/components/scout/job-listing";
 import { getSession } from "@/lib/auth/auth";
 import connectDB from "@/lib/db";
-import { initializeUserBoard } from "@/lib/init-user-board";
 import { JobApplication, Profile } from "@/lib/models";
 import { Bot, CheckCircle2, Circle } from "lucide-react";
 import { Suspense } from "react";

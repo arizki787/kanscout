@@ -17,6 +17,7 @@ import { useState } from "react";
 import { createJobApplication } from "@/lib/actions/job-application";
 import JobSourceSelect from "./job-source-select";
 import { inferJobSource, type JobSource } from "@/lib/job-source";
+import type { JobStatus } from "@/lib/models/models.types";
 
 interface FormDataType {
   company: string;
@@ -43,8 +44,7 @@ const INITIAL_FORM_DATA: FormDataType = {
 };
 
 interface CreateJobApplicationDialogProps {
-  columnId: string;
-  boardId: string;
+  status?: JobStatus;
   buttonVariant?: "outline" | "ghost";
   buttonLabel?: string;
   showLabel?: boolean;
@@ -184,8 +184,7 @@ function JobApplicationForm({
 }
 
 function CreateJobApplicationDialog({
-  columnId,
-  boardId,
+  status = "wishlist",
   buttonVariant = "outline",
   buttonLabel = "Add Job",
   showLabel = true,
@@ -200,13 +199,19 @@ function CreateJobApplicationDialog({
     setIsButtonDisabled(true);
     try {
       const result = await createJobApplication({
-        ...formData,
-        columnId,
-        boardId,
+        company: formData.company,
+        position: formData.position,
+        location: formData.location,
+        notes: formData.notes,
+        salary: formData.salary,
+        jobUrl: formData.jobUrl,
+        source: formData.source,
+        status,
         tags: formData.tags
           .split(",")
           .map((tag) => tag.trim())
           .filter((tag) => tag.length > 0),
+        description: formData.description,
       });
       setIsButtonDisabled(false);
       if (!result.error) {
@@ -252,13 +257,13 @@ export default CreateJobApplicationDialog;
 
 // Convenience export for no add job variant
 export function CreateJobApplicatDialogNoButton({
-  columnId,
-  boardId,
-}: CreateJobApplicationDialogProps) {
+  status = "wishlist",
+}: {
+  status?: JobStatus;
+}) {
   return (
     <CreateJobApplicationDialog
-      columnId={columnId}
-      boardId={boardId}
+      status={status}
       buttonVariant="ghost"
       showLabel={false}
       buttonClassName="text-white justify-start"

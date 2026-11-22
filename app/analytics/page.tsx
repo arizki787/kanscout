@@ -32,7 +32,7 @@ const STATUS_COLORS = {
   ghosted: "#6B7280"
 };
 
-function getStatistics(board: BoardType) {
+function getStatistics(board: BoardType | null) {
   const jobCount = {
     wishlist: 0,
     applied: 0,
@@ -64,7 +64,7 @@ function getStatistics(board: BoardType) {
   return jobCount;
 }
 
-function getSourceStatistics(board: BoardType): Record<JobSource, number> {
+function getSourceStatistics(board: BoardType | null): Record<JobSource, number> {
   const sourceCount = Object.fromEntries(
     JOB_SOURCES.map((source) => [source, 0])
   ) as Record<JobSource, number>;

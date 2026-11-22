@@ -14,7 +14,7 @@ import { CreateJobApplicatDialogNoButton } from "./create-job-dialog";
 import JobApplicationCard from "./job-application-card";
 
 interface KanbanBoardProps {
-  board: Board;
+  board: Board | null;
   userId: string;
 }
 
@@ -53,12 +53,10 @@ const COLUMN_CONFIG: Array<ColConfig> = [
 function KanbanColumn({
   column,
   config,
-  boardId,
   sortedColumns,
 }: {
   column: Column;
   config: ColConfig;
-  boardId: string;
   sortedColumns: Column[];
 }) {
   const sortedJobs = [...(column.jobApplications || [])].sort((a, b) => {
@@ -80,8 +78,7 @@ function KanbanColumn({
           </div>
           <div className="ml-auto">
             <CreateJobApplicatDialogNoButton
-              columnId={column._id}
-              boardId={boardId}
+              status={column.status}
             />
           </div>
         </div>
@@ -91,7 +88,7 @@ function KanbanColumn({
         {sortedJobs.map((job) => (
           <JobApplicationCard
             key={job._id}
-            job={{ ...job, columnId: job.columnId || column._id }}
+            job={job}
             columns={sortedColumns}
           />
         ))}
@@ -116,7 +113,6 @@ export default function KanbanBoard({ board }: KanbanBoardProps) {
               key={col._id || key}
               column={col}
               config={config}
-              boardId={board._id}
               sortedColumns={sortedColumns}
             />
           );

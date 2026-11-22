@@ -3,7 +3,6 @@ import { mongodbAdapter } from 'better-auth/adapters/mongodb';
 import { MongoClient } from 'mongodb';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
-import { initializeUserBoard } from '../init-user-board';
 import { Resend } from "resend";
 
 const mongoUri = process.env.MONGODB_URI;
@@ -141,17 +140,6 @@ export const auth = betterAuth({
     accountLinking: {
         enabled: true,
         trustedProviders: ['google'],
-    },
-    databaseHooks: {
-        user: {
-            create: {
-                after: async (user) => {
-                    if(user.id) {
-                        await initializeUserBoard(user.id)
-                    }
-                }
-            }
-        }
     },
     socialProviders: {
         google: {
