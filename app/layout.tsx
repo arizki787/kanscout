@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import Script from "next/script";
+import { getSiteUrl, siteConfig } from "@/lib/site";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,9 +16,49 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl = getSiteUrl();
+
 export const metadata: Metadata = {
-  title: "Kanscout - Visual Kanban Board for Job Search & Application Tracking",
-  description: "Kanscout is an intuitive Kanban board for looking for jobs and tracking your job applications from start to offer.",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: siteConfig.title,
+    template: "%s | Kanscout",
+  },
+  description: siteConfig.description,
+  keywords: siteConfig.keywords,
+  authors: [{ name: "Kanscout" }],
+  creator: "Kanscout",
+  publisher: "Kanscout",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: siteUrl,
+    siteName: siteConfig.name,
+    title: siteConfig.title,
+    description: siteConfig.description,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteConfig.title,
+    description: siteConfig.description,
+  },
+  verification: {
+    google: "V9cKyVoFXoqClsmcqE-YcEioVvxV1IEGtijllK1sOyg",
+  },
 };
 
 export default function RootLayout({
